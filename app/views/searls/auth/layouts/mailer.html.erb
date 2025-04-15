@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light only">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+    <meta name="x-apple-disable-message-reformatting">
+    <title><%= message.subject %></title>
+  </head>
+  <body style="background-color: <%= Searls::Auth.config.email_background_color %>;">
+    <div role="article" aria-roledescription="email" aria-label="<%= message.subject %>" lang="en">
+      <table border="0" cellpadding="0" cellspacing="0" style="font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: <%= Searls::Auth.config.email_background_color %>; color: #111827;" width="100%">
+        <tr>
+          <td height="96" align="center">
+            <% if Searls::Auth.config.email_banner_image_path.present? %>
+              <% banner_img = image_tag(
+                email_image_data_url(Searls::Auth.config.email_banner_image_path),
+                style: "height: 48px;"
+              ) %>
+              <% if Searls::Auth.config.app_url.present? %>
+                <%= link_to Searls::Auth.config.app_url, style: "text-align: center;" do %>
+                  <%= banner_img %>
+                <% end %>
+              <% else %>
+                <div style="text-align: center;">
+                  <%= banner_img %>
+                </div>
+              <% end %>
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td align="center">
+            <table width="<%= content_for?(:width) ? yield(:width) : 480 %>" border="0" cellpadding="0" cellspacing="0" style="padding-left: 0.5rem; padding-right: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border-radius: 0.75rem; background-color: white; width: 100%; max-width: <%= content_for?(:width) ? yield(:width) : 480 %>px;">
+              <tr>
+                <td>
+                  <%= yield %>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td height="32">
+            <%= yield :footer %>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+<h1>Log In</h1>
+
+<div style="background: rgba(255,0,0, 0.1)">
+  <%= flash[:error] %>
+</div>
+<div style="background: rgba(0,0,255, 0.1)">
+  <%= flash[:notice] %>
+</div>
+
+<%= form_with url: login_path, method: :post, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
+  <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
+  <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+  <%= f.email_field :email, required: true, value: params[:email], data: searls_auth_helper.email_field_stimulus_data %>
+  <%= f.submit "Log in" %>
+<% end %>
+
+<p>
+  Not registered yet? <%= link_to "Sign up", searls_auth_helper.register_path %> instead!
+</p>
+

@@ -1,0 +1,23 @@
+<h1>Check your email!</h1>
+<p>
+  In the next few moments, you should receive an email that will provide you
+  two ways to log in: a link and a six-digit code that you can enter below.
+</p>
+<%= form_with(url: verify_path, method: :post, data: {
+    # Don't use turbo on cross-domain redirects
+    turbo: searls_auth_helper.enable_turbo?
+  }) do |f| %>
+  <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
+  <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+  <div data-controller="<%= searls_auth_helper.otp_stimulus_controller %>">
+    <%= f.text_field :short_code,
+      maxlength: 6,
+      inputmode: "numeric",
+      pattern: "\\d{6}",
+      autocomplete: "one-time-code",
+      title: "six-digit code that was emailed to you",
+      data: searls_auth_helper.otp_field_stimulus_data
+    %>
+  </div>
+  <%= f.submit "Log in" %>
+<% end %>

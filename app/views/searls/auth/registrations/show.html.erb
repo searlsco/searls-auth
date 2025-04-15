@@ -1,0 +1,19 @@
+<h1>Create your account</h1>
+
+<div style="background: rgba(255,0,0, 0.1)">
+  <%= flash[:error] %>
+</div>
+<div style="background: rgba(0,0,255, 0.1)">
+  <%= flash[:notice] %>
+</div>
+
+<%= form_with url: register_path, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
+  <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
+  <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+  <%= f.email_field :email, value: params[:email], required: true, data: searls_auth_helper.email_field_stimulus_data %>
+  <%= f.submit "Register" %>
+<% end %>
+
+<p>
+  Already have an account? <%= link_to "Log in", searls_auth_helper.login_path %> instead.
+</p>
