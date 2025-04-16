@@ -194,7 +194,7 @@ So what does the searls-auth gem _actually do_? Well, let's restart our server w
 
 Here's what the searls-auth default email templates look like if you're not playing the home version of the game yourself:
 
-![Fancy email](https://github.com/user-attachments/assets/0d5abe57-b34e-4151-a54f-1bdb7026a432)
+![Fancy email](https://github.com/user-attachments/assets/849726d3-220b-4d8d-b420-3e77336f34dd)
 
 And for non-HTML renderers:
 
