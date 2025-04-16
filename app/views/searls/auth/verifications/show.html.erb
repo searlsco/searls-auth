@@ -10,6 +10,7 @@
   <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
   <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
   <div data-controller="<%= searls_auth_helper.otp_stimulus_controller %>">
+    <%= f.label :short_code, "Code" %>
     <%= f.text_field :short_code,
       maxlength: 6,
       inputmode: "numeric",
