@@ -3,7 +3,7 @@
   In the next few moments, you should receive an email that will provide you
   two ways to log in: a link and a six-digit code that you can enter below.
 </p>
-<%= form_with(url: verify_path, method: :post, data: {
+<%= form_with(url: searls_auth.verify_path, method: :post, data: {
     # Don't use turbo on cross-domain redirects
     turbo: searls_auth_helper.enable_turbo?
   }) do |f| %>

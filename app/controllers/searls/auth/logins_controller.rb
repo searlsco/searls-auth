@@ -19,12 +19,12 @@ module Searls
             short_code: session[:email_auth_short_code]
           )
           flash[:notice] = "Login details sent to #{params[:email]}"
-          redirect_to verify_path(
+          redirect_to searls_auth.verify_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
           )
         else
-          flash.now[:error] = "We don't know that email. <a href=\"#{register_path(
+          flash.now[:error] = "We don't know that email. <a href=\"#{searls_auth.register_path(
             email: params[:email],
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
@@ -37,7 +37,7 @@ module Searls
         ResetsSession.new.reset(self, except_for: [:has_logged_in_before])
 
         flash[:notice] = "You've been logged out."
-        redirect_to login_path
+        redirect_to searls_auth.login_path
       end
     end
   end

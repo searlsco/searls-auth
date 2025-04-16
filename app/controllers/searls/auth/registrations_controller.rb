@@ -24,7 +24,7 @@ module Searls
             **redirect_params
           )
           flash[:notice] = "Verification email sent to #{params[:email]}"
-          redirect_to verify_path(**redirect_params)
+          redirect_to searls_auth.verify_path(**redirect_params)
         else
           flash.now[:error] = result.error_messages
           render searls_auth_config.register_view, layout: searls_auth_config.layout, status: :unprocessable_entity

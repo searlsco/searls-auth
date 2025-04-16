@@ -36,7 +36,7 @@ module Searls
           render searls_auth_config.verify_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         else
           flash[:error] = "We weren't able to log you in with that link. Try again?"
-          redirect_to login_path(
+          redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
           )
@@ -48,7 +48,7 @@ module Searls
           except_for: searls_auth_config.preserve_session_keys_after_logout)
 
         flash[:notice] = "You've been logged out."
-        redirect_to login_path
+        redirect_to searls_auth.login_path
       end
 
       private

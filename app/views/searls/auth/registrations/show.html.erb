@@ -7,7 +7,7 @@
   <%= flash[:notice] %>
 </div>
 
-<%= form_with url: register_path, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
+<%= form_with url: searls_auth.register_path, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
   <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
   <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
   <%= f.email_field :email, value: params[:email], required: true, data: searls_auth_helper.email_field_stimulus_data %>
