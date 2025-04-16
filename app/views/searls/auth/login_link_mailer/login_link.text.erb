@@ -1,4 +1,4 @@
-<% if (user_name = searls_auth_helper.attr_for(@user, @config.user_name_field)).present? %>
+<% if (user_name = searls_auth_helper.attr_for(@user, @config.user_name_method)).present? %>
 Hi, <%= user_name %>!
 <% else %>
 Hello!

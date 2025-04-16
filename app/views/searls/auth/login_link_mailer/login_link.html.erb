@@ -1,6 +1,6 @@
 <%= content_for :width, 480 %>
   <p>
-    <% if (user_name = searls_auth_helper.attr_for(@user, @config.user_name_field)).present? %>
+    <% if (user_name = searls_auth_helper.attr_for(@user, @config.user_name_method)).present? %>
       Hello, <strong><%= user_name %></strong>!
     <% else %>
       Hello!

@@ -6,7 +6,7 @@ module Searls
       :user_finder_by_id, # proc (id)
       :user_finder_by_token, # proc (token)
       :user_initializer, # proc (params)
-      :user_name_field, # string
+      :user_name_method, # string
       :token_generator, # proc ()
       :token_expiry_minutes, # integer
       # Controller setup

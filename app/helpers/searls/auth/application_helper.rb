@@ -51,7 +51,9 @@ module Searls
       end
 
       def attr_for(model, field_name)
-        model.attributes[field_name.to_s]
+        if model.respond_to?(field_name)
+          model.send(field_name)
+        end
       end
 
       def rpad(s, spacer = " ", times = 1)

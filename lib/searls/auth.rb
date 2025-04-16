@@ -16,8 +16,8 @@ module Searls
       user_finder_by_email: ->(email) { User.find_by(email:) },
       user_finder_by_id: ->(id) { User.find_by(id:) },
       user_finder_by_token: ->(token) { User.find_by_token_for(:email_auth, token) },
-      user_initializer: ->(params) { User.new(params[:email]) },
-      user_name_field: "name",
+      user_initializer: ->(params) { User.new(email: params[:email]) },
+      user_name_method: "name",
       token_generator: ->(user) { user.generate_token_for(:email_auth) },
       token_expiry_minutes: 30,
       # Controller setup
