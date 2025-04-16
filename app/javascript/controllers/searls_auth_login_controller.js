@@ -23,7 +23,6 @@ export default class SearlsAuthLoginController extends Controller {
   }
 
   updateEmail (e) {
-    debugger
     this.emailValue = e.currentTarget.value
     window.sessionStorage.setItem('__searls_auth_email', this.emailValue)
   }
