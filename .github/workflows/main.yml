@@ -47,13 +47,13 @@ jobs:
         with:
           node-version: 'node'
 
-      - name: Cache Yarn cache for example/simple_app
+      - name: Cache Yarn v1 global cache
         uses: actions/cache@v4
         with:
-          path: example/simple_app/.yarn/cache
-          key: ${{ runner.os }}-yarn-simple_app-${{ hashFiles('example/simple_app/yarn.lock') }}
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-v1-${{ hashFiles('example/simple_app/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-simple_app-
+            ${{ runner.os }}-yarn-v1-
 
       - name: Install yarn dependencies in example/simple_app
         run: |
@@ -69,11 +69,15 @@ jobs:
 
       - name: Install Playwright Chromium browser (with deps)
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: yarn run playwright install --with-deps chromium
+        run: |
+          cd example/simple_app
+          yarn run playwright install --with-deps chromium
 
       - name: Install Playwright Chromium browser deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: yarn run playwright install-deps chromium
+        run: |
+          cd example/simple_app
+          yarn run playwright install-deps chromium
 
       - name: Run the default task
         run: |
