@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.1.0] - 2025-04-26
+
 * Add `max_allowed_short_code_attempts` configuration, beyond which the code is erased from the session and the user needs to login again (default: 10)
 * Allow configuration of flash messages
 * Fix a routing error if the user is already registered
