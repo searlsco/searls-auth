@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd example/simple_app
+bin/rake db:setup
+cd ../..
