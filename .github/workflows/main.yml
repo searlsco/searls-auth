@@ -24,9 +24,6 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev pkg-config libidn11-dev
-
       # Example app stuff
       - name: Cache gems for example/simple_app
         uses: actions/cache@v4
