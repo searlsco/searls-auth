@@ -28,12 +28,19 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev pkg-config libidn11-dev
 
       # Example app stuff
-      - name: Set up Ruby for example/simple_app
-        uses: ruby/setup-ruby@v1
+      - name: Cache gems for example/simple_app
+        uses: actions/cache@v4
         with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
-        working-directory: example/simple_app
+          path: example/simple_app/vendor/bundle
+          key: ${{ runner.os }}-gems-simple_app-${{ hashFiles('example/simple_app/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-simple_app-
+
+      - name: Bundle install for example/simple_app
+        run: |
+          cd example/simple_app
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
 
       - name: Set up Node
         uses: actions/setup-node@v4
