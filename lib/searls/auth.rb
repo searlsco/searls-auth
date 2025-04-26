@@ -48,7 +48,19 @@ module Searls
       support_email_address: nil,
       email_background_color: "#d8d7ed",
       email_button_color: "#c664f3",
-      email_banner_image_path: nil
+      email_banner_image_path: nil,
+      # Messages setup
+      flash_notice_after_registration: ->(user, params) { "Verification email sent to #{params[:email]}" },
+      flash_error_after_register_attempt: ->(error_messages, login_path, params) { error_messages },
+      flash_notice_after_login_attempt: ->(user, params) { "Login details sent to #{params[:email]}" },
+      flash_error_after_login_attempt_unknown_email: ->(register_path, params) {
+        "We don't know that email. <a href=\"#{register_path}\">Sign up</a> instead?".html_safe
+      },
+      flash_notice_after_logout: "You've been logged out.",
+      flash_notice_after_verification: "You are now logged in",
+      flash_error_after_verify_attempt_incorrect_short_code: "We weren't able to log you in with that code. Try again?",
+      flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?"
+
     }.freeze
 
     CONFIG = Config.new(**DEFAULT_CONFIG)

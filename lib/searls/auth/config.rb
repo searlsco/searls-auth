@@ -32,6 +32,15 @@ module Searls
       :email_banner_image_path, # string
       :email_background_color, # string
       :email_button_color, # string
+      # Messages setup
+      :flash_notice_after_registration, # string or proc(user, params)
+      :flash_error_after_register_attempt, # string or proc(error_messages, login_path, params)
+      :flash_notice_after_login_attempt, # string or proc(user, params)
+      :flash_error_after_login_attempt_unknown_email, # string or proc(register_path, params)
+      :flash_notice_after_logout, # string or proc(params)
+      :flash_notice_after_verification, # string or proc(user, params)
+      :flash_error_after_verify_attempt_incorrect_short_code, # string or proc(params)
+      :flash_error_after_verify_attempt_invalid_link, # string or proc(params)
       keyword_init: true
     ) do
       # Get values from values that might be procs

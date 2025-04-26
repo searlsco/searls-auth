@@ -18,17 +18,24 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain],
             short_code: session[:email_auth_short_code]
           )
-          flash[:notice] = "Login details sent to #{params[:email]}"
+          flash[:notice] = searls_auth_config.resolve(
+            :flash_notice_after_login_attempt,
+            user, params
+          )
           redirect_to searls_auth.verify_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
           )
         else
-          flash.now[:error] = "We don't know that email. <a href=\"#{searls_auth.register_path(
-            email: params[:email],
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )}\">Sign up</a> instead?".html_safe
+          flash.now[:error] = searls_auth_config.resolve(
+            :flash_error_after_login_attempt_unknown_email,
+            searls_auth.register_path(
+              email: params[:email],
+              redirect_path: params[:redirect_path],
+              redirect_subdomain: params[:redirect_subdomain]
+            ),
+            params
+          )
           render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         end
       end
@@ -36,7 +43,10 @@ module Searls
       def destroy
         ResetsSession.new.reset(self, except_for: [:has_logged_in_before])
 
-        flash[:notice] = "You've been logged out."
+        flash[:notice] = searls_auth_config.resolve(
+          :flash_notice_after_logout,
+          params
+        )
         redirect_to searls_auth.login_path
       end
     end

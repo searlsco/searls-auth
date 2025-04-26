@@ -23,10 +23,23 @@ module Searls
             short_code: session[:email_auth_short_code],
             **redirect_params
           )
-          flash[:notice] = "Verification email sent to #{params[:email]}"
+          flash[:notice] = searls_auth_config.resolve(
+            :flash_notice_after_registration,
+            result.user, params
+          )
+
           redirect_to searls_auth.verify_path(**redirect_params)
         else
-          flash.now[:error] = result.error_messages
+          flash.now[:error] = searls_auth_config.resolve(
+            :flash_error_after_register_attempt,
+            result.error_messages,
+            searls_auth.login_path(
+              email: params[:email],
+              redirect_path: params[:redirect_path],
+              redirect_subdomain: params[:redirect_subdomain]
+            ),
+            params
+          )
           render searls_auth_config.register_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         end
       end

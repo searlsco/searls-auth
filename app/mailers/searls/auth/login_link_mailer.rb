@@ -11,7 +11,7 @@ module Searls
 
         mail(
           to: format_to(@user),
-          subject: "Your #{searls_auth_helper.rpad(@config.app_name)} login code is #{@short_code}",
+          subject: "Your #{searls_auth_helper.rpad(@config.app_name)}login code is #{@short_code}",
           template_path: @config.mail_login_template_path,
           template_name: @config.mail_login_template_name
         ) do |format|

@@ -23,6 +23,28 @@
   </head>
 
   <body>
+    <% flash.each do |type, message| %>
+      <% next unless [:notice, :error].include?(type.to_sym) && message.present? %>
+      <% messages = Array.wrap(message) %>
+      <% style = case type.to_sym
+        when :notice
+          "background-color:#e0f7fa;color:#006064;border:1px solid #4dd0e1;"
+        when :error
+          "background-color:#ffebee;color:#b71c1c;border:1px solid #ef9a9a;"
+        end
+      %>
+      <div style="<%= style %>padding:1rem 1.5rem;margin:1rem 0;max-width:32rem;border-radius:0.5rem;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <% if messages.size > 1 %>
+          <ul style="margin-bottom: 1.5rem;padding:0;list-style:disc inside;">
+            <% messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <%= messages.first %>
+        <% end %>
+      </div>
+    <% end %>
     <%= yield %>
   </body>
 </html>

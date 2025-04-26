@@ -57,6 +57,7 @@ module Searls
       end
 
       def rpad(s, spacer = " ", times = 1)
+        return "" if s.blank?
         "#{s}#{spacer * times}"
       end
 

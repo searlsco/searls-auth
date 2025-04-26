@@ -11,7 +11,7 @@ module Searls
           Searls::Auth.config.user_initializer.call(params)
 
         if user.persisted?
-          Result.new(nil, false, ["An account already exists for that email address. <a href=\"#{searls_auth.login_path(**forwardable_params(params))}\">Log in</a> instead?".html_safe])
+          Result.new(nil, false, ["An account already exists for that email address. <a href=\"#{login_path(**forwardable_params(params))}\">Log in</a> instead?".html_safe])
         elsif (errors = Searls::Auth.config.validate_registration.call(user, params, [])).any?
           Result.new(nil, false, errors)
         elsif user.save
