@@ -13,6 +13,5 @@ Rails.application.routes.draw do
 
   mount Searls::Auth::Engine => "/auth"
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  root "only_members#show"
 end

@@ -1,5 +1,22 @@
 require "test_helper"
 
+Capybara.register_driver :my_playwright do |app|
+  Capybara::Playwright::Driver.new(app,
+    browser_type: ENV["PLAYWRIGHT_BROWSER"]&.to_sym || :chromium,
+    headless: (false unless ENV["CI"] || ENV["PLAYWRIGHT_HEADLESS"]))
+end
+
+Capybara.enable_aria_label = true
+
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
+  driven_by :my_playwright
+  self.use_transactional_tests = true
+
+  setup do
+    ActiveJob::Base.queue_adapter = :inline
+  end
+
+  teardown do
+    ActiveJob::Base.queue_adapter = :test
+  end
 end

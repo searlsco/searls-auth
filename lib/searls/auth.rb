@@ -22,6 +22,7 @@ module Searls
       token_expiry_minutes: 30,
       # Controller setup
       preserve_session_keys_after_logout: [],
+      max_allowed_short_code_attempts: 10,
       # View setup
       layout: "application",
       register_view: "searls/auth/registrations/show",
@@ -56,8 +57,9 @@ module Searls
       flash_error_after_login_attempt_unknown_email: ->(register_path, params) {
         "We don't know that email. <a href=\"#{register_path}\">Sign up</a> instead?".html_safe
       },
-      flash_notice_after_logout: "You've been logged out.",
+      flash_notice_after_logout: "You've been logged out",
       flash_notice_after_verification: "You are now logged in",
+      flash_error_after_verify_attempt_exceeds_limit: "Too many verification attempts. Please login again to generate a new code",
       flash_error_after_verify_attempt_incorrect_short_code: "We weren't able to log you in with that code. Try again?",
       flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?"
 

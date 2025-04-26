@@ -3,5 +3,5 @@
 </div>
 
 <div>
-  <%= link_to "Log out", searls_auth.logout_path %>
+  <%= link_to "Log out", searls_auth.logout_path, method: :delete, data: { turbo: false } %>
 </div>

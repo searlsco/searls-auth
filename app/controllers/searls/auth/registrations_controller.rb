@@ -20,7 +20,7 @@ module Searls
 
           EmailsLink.new.email(
             user: result.user,
-            short_code: session[:email_auth_short_code],
+            short_code: session[:searls_auth_short_code],
             **redirect_params
           )
           flash[:notice] = searls_auth_config.resolve(

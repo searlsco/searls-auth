@@ -12,6 +12,7 @@ module Searls
         authenticator = AuthenticatesUser.new
         result = case auth_method
         when :short_code
+          log_short_code_verification_attempt!
           authenticator.authenticate_by_short_code(params[:short_code], session)
         when :token
           authenticator.authenticate_by_token(params[:token])
@@ -36,11 +37,23 @@ module Searls
               result.user, params, request, main_app)
           end
         elsif auth_method == :short_code
-          flash[:error] = searls_auth_config.resolve(
-            :flash_error_after_verify_attempt_incorrect_short_code,
-            params
-          )
-          render searls_auth_config.verify_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          if result.exceeded_short_code_attempt_limit?
+            clear_short_code_from_session!
+            flash[:error] = searls_auth_config.resolve(
+              :flash_error_after_verify_attempt_exceeds_limit,
+              params
+            )
+            redirect_to searls_auth.login_path(
+              redirect_path: params[:redirect_path],
+              redirect_subdomain: params[:redirect_subdomain]
+            )
+          else
+            flash[:error] = searls_auth_config.resolve(
+              :flash_error_after_verify_attempt_incorrect_short_code,
+              params
+            )
+            render searls_auth_config.verify_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          end
         else
           flash[:error] = searls_auth_config.resolve(
             :flash_error_after_verify_attempt_invalid_link,

@@ -16,7 +16,7 @@ module Searls
             user:,
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain],
-            short_code: session[:email_auth_short_code]
+            short_code: session[:searls_auth_short_code]
           )
           flash[:notice] = searls_auth_config.resolve(
             :flash_notice_after_login_attempt,

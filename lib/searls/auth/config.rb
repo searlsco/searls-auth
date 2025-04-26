@@ -11,6 +11,7 @@ module Searls
       :token_expiry_minutes, # integer
       # Controller setup
       :preserve_session_keys_after_logout, # array of symbols
+      :max_allowed_short_code_attempts, # integer
       # View setup
       :layout, # string
       :login_view, # string
@@ -39,6 +40,7 @@ module Searls
       :flash_error_after_login_attempt_unknown_email, # string or proc(register_path, params)
       :flash_notice_after_logout, # string or proc(params)
       :flash_notice_after_verification, # string or proc(user, params)
+      :flash_error_after_verify_attempt_exceeds_limit, # string or proc(params)
       :flash_error_after_verify_attempt_incorrect_short_code, # string or proc(params)
       :flash_error_after_verify_attempt_invalid_link, # string or proc(params)
       keyword_init: true
