@@ -28,8 +28,6 @@ module Searls
 
           Otherwise, you may want to override searls-auth's "token_generator" setting with a proc of your own.
         MSG
-
-        binding.irb
       end
     end
   end

@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.1] - 2025-04-27
+
+* Improve error message when token generation fails due to a token not being configured on the user model
+
 ## [0.1.0] - 2025-04-26
 
 * Add `max_allowed_short_code_attempts` configuration, beyond which the code is erased from the session and the user needs to login again (default: 10)
