@@ -86,4 +86,4 @@ As stated in the comment above, you can find each configuration and its default 
 
 Of course, having a user be "logged in" or not doesn't mean anything if your application doesn't do anything with the knowledge. Users that are logged in will have `session[:user_id]` set to the value of the logged-in user's ID. Logged out users won't have anything set to `session[:user_id]`. What you do with that is your job, not this gem. (Wait, after 20 years does this mean I finally understand the difference between authentication and authorization? Better late than never.)
 
-If this is your first rodeo and you just read the previous paragraph and thought, _yeah, but now what?_, check out the tail end of the [example app README](/example/simple_app/README.md), which shows an approach that a lot of apps use.
+If this is your first rodeo and you just read the previous paragraph and thought, _yeah, but now what?_, check out the tail end of the [example app README](/example/simple_app/README.md#5-require-authentication-for-appropriate-actions), which shows an approach that a lot of apps use.
