@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.2.0] - 2025-09-11
+
+* Add `auth_methods` configuration with default `[:email_link, :email_otp]`
+
 ## [0.1.1] - 2025-04-27
 
 * Improve error message when token generation fails due to a token not being configured on the user model

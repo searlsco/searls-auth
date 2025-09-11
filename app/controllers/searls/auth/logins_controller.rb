@@ -11,7 +11,12 @@ module Searls
         user = searls_auth_config.user_finder_by_email.call(params[:email])
 
         if user.present?
-          attach_short_code_to_session!(user)
+          if searls_auth_config.auth_methods.include?(:email_otp)
+            attach_short_code_to_session!(user)
+          else
+            clear_short_code_from_session!
+          end
+
           EmailsLink.new.email(
             user:,
             redirect_path: params[:redirect_path],

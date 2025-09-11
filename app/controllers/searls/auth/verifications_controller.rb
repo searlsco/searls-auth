@@ -8,13 +8,27 @@ module Searls
       end
 
       def create
-        auth_method = params[:short_code].present? ? :short_code : :token
+        auth_method = params[:short_code].present? ? :email_otp : :email_link
+        if auth_method == :email_otp && !searls_auth_config.auth_methods.include?(:email_otp)
+          flash[:error] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
+          return redirect_to searls_auth.login_path(
+            redirect_path: params[:redirect_path],
+            redirect_subdomain: params[:redirect_subdomain]
+          )
+        end
+        if auth_method == :email_link && !searls_auth_config.auth_methods.include?(:email_link)
+          flash[:error] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
+          return redirect_to searls_auth.login_path(
+            redirect_path: params[:redirect_path],
+            redirect_subdomain: params[:redirect_subdomain]
+          )
+        end
         authenticator = AuthenticatesUser.new
         result = case auth_method
-        when :short_code
+        when :email_otp
           log_short_code_verification_attempt!
           authenticator.authenticate_by_short_code(params[:short_code], session)
-        when :token
+        when :email_link
           authenticator.authenticate_by_token(params[:token])
         end
 
@@ -36,7 +50,7 @@ module Searls
             redirect_to searls_auth_config.resolve(:default_redirect_path_after_login,
               result.user, params, request, main_app)
           end
-        elsif auth_method == :short_code
+        elsif auth_method == :email_otp
           if result.exceeded_short_code_attempt_limit?
             clear_short_code_from_session!
             flash[:error] = searls_auth_config.resolve(

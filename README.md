@@ -82,6 +82,28 @@ end
 ```
 As stated in the comment above, you can find each configuration and its default value in the code.
 
+### Choose your login methods
+
+By default, users can log in either by clicking a magic link or by entering a 6‑digit code they receive via email. This is controlled by the `auth_methods` configuration:
+
+```ruby
+# config/initializers/searls_auth.rb
+Rails.application.config.after_initialize do
+  Searls::Auth.configure do |config|
+    # Defaults:
+    config.auth_methods = [:email_link, :email_otp]
+
+    # Link-only (no code in emails, no OTP input shown):
+    # config.auth_methods = :email_link
+
+    # Code-only (no link in emails; OTP input shown):
+    # config.auth_methods = :email_otp
+  end
+end
+```
+
+One reason you might want to disable e-mail OTP is that it exposes your users to [a pretty easy-to-implement man-in-the-middle attack](https://blog.danielh.cc/blog/passwords).
+
 ## Use it
 
 Of course, having a user be "logged in" or not doesn't mean anything if your application doesn't do anything with the knowledge. Users that are logged in will have `session[:user_id]` set to the value of the logged-in user's ID. Logged out users won't have anything set to `session[:user_id]`. What you do with that is your job, not this gem. (Wait, after 20 years does this mean I finally understand the difference between authentication and authorization? Better late than never.)

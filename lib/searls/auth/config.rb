@@ -1,6 +1,7 @@
 module Searls
   module Auth
     Config = Struct.new(
+      :auth_methods, # array of symbols, e.g., [:email_link, :email_otp]
       # Data setup
       :user_finder_by_email, # proc(email)
       :user_finder_by_id, # proc(id)
@@ -52,6 +53,10 @@ module Searls
         else
           self[option]
         end
+      end
+
+      def auth_methods
+        Array(self[:auth_methods]).map(&:to_sym)
       end
     end
   end

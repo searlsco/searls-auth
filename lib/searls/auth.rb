@@ -12,6 +12,7 @@ module Searls
     class Error < StandardError; end
 
     DEFAULT_CONFIG = {
+      auth_methods: [:email_link, :email_otp],
       # Data setup
       user_finder_by_email: ->(email) { User.find_by(email:) },
       user_finder_by_id: ->(id) { User.find_by(id:) },

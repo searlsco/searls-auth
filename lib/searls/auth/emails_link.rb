@@ -4,8 +4,8 @@ module Searls
       def email(user:, short_code:, redirect_path: nil, redirect_subdomain: nil)
         LoginLinkMailer.with(
           user:,
-          token: generate_token!(user),
-          short_code:,
+          token: (Searls::Auth.config.auth_methods.include?(:email_link) ? generate_token!(user) : nil),
+          short_code: (Searls::Auth.config.auth_methods.include?(:email_otp) ? short_code : nil),
           redirect_path:,
           redirect_subdomain:
         ).login_link.deliver_later

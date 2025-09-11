@@ -4,17 +4,22 @@ Hi, <%= user_name %>!
 Hello!
 <% end %>
 
-You can log in to your <%= searls_auth_helper.rpad(@config.app_name) %>account at this URL:
+<% if Searls::Auth.config.auth_methods.include?(:email_link) %>
+You can log in by visiting this URL for your <%= searls_auth_helper.rpad(@config.app_name) %>account:
 
 <%= searls_auth.verify_token_url({
   token: @token,
   redirect_path: @redirect_path,
   redirect_subdomain: @redirect_subdomain
 }.compact_blank) %>
+<% end %>
 
-Alternatively, you can type or paste the following code into your browser:
+<% if Searls::Auth.config.auth_methods.include?(:email_otp) && @short_code.present? %>
+
+You can log in by entering this code:
 
 <%= @short_code %>
+<% end %>
 
 Didn't try to log in? You can safely ignore this email.<%= " If this keeps
 happening, please let us know at #{@config.support_email_address}" if @config.support_email_address.present? %>

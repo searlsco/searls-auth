@@ -1,24 +1,24 @@
 <h1>Check your email!</h1>
+<% parts = { email_link: "a link", email_otp: "a six-digit code" }.slice(*Searls::Auth.config.auth_methods).values %>
 <p>
-  In the next few moments, you should receive an email that will provide you
-  two ways to log in: a link and a six-digit code that you can enter below.
+  In the next few moments, you should receive an email with <%= parts.to_sentence %> to log in.
 </p>
-<%= form_with(url: searls_auth.verify_path, method: :post, data: {
-    # Don't use turbo on cross-domain redirects
-    turbo: searls_auth_helper.enable_turbo?
-  }) do |f| %>
-  <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
-  <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
-  <div data-controller="<%= searls_auth_helper.otp_stimulus_controller %>">
-    <%= f.label :short_code, "Code" %>
-    <%= f.text_field :short_code,
-      maxlength: 6,
-      inputmode: "numeric",
-      pattern: "\\d{6}",
-      autocomplete: "one-time-code",
-      title: "six-digit code that was emailed to you",
-      data: searls_auth_helper.otp_field_stimulus_data
-    %>
-  </div>
-  <%= f.submit "Log in" %>
+
+<% if Searls::Auth.config.auth_methods.include?(:email_otp) %>
+  <%= form_with(url: searls_auth.verify_path, method: :post, data: { turbo: searls_auth_helper.enable_turbo? }) do |f| %>
+    <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
+    <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+    <div data-controller="<%= searls_auth_helper.otp_stimulus_controller %>">
+      <%= f.label :short_code, "Code" %>
+      <%= f.text_field :short_code,
+        maxlength: 6,
+        inputmode: "numeric",
+        pattern: "\\d{6}",
+        autocomplete: "one-time-code",
+        title: "six-digit code that was emailed to you",
+        data: searls_auth_helper.otp_field_stimulus_data
+      %>
+    </div>
+    <%= f.submit "Log in" %>
+  <% end %>
 <% end %>
