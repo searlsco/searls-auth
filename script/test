@@ -7,7 +7,7 @@ bundle exec rake
 
 echo "-----> Testing example/simple_app"
 cd example/simple_app
-bin/rake
+./script/test
 cd ../..
 
 echo "-----> Looks good! 🪩"
