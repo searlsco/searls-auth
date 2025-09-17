@@ -156,6 +156,44 @@ If you already have legacy password hashing, override `password_verifier`/`passw
 
 All successful logins still render through the same flows, so make sure your app handles `session[:user_id]` uniformly regardless of which auth method succeeded.
 
+### Password reset
+
+When `auth_methods` includes `:password`, the engine renders a "Forgot your password?" link beneath the login form. Clicking it walks through a two-step flow: request a reset email and then choose a new password. To enable it, make sure your `User` model issues a token named `:password_reset`. If your app cannot send email yet, disable the link entirely with `config.password_reset_enabled = false` until SMTP is wired up.
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  generates_token_for :password_reset, expires_in: 30.minutes
+  has_secure_password validations: false
+end
+```
+
+Adjust the expiry window by updating the `expires_in` value above or by providing a custom generator via configuration.
+
+Need rate limiting or business rules before delivering reset emails? Return `false` or `:halt` from `before_password_reset` to silently skip sending while preserving the standard response.
+
+By default we generate tokens via `generates_token_for`, send mail from `Searls::Auth::PasswordResetMailer`, and log the user in immediately after a successful reset. You can override any piece of that behavior:
+
+```ruby
+Searls::Auth.configure do |config|
+  config.password_reset_expiry_minutes = 15
+  config.password_reset_token_generator = ->(user) { user.generate_token_for(:password_reset) }
+  config.password_reset_token_finder = ->(token) { PasswordResetTokenStore.lookup(token) }
+  config.password_reset_token_clearer = ->(user) { PasswordResetTokenStore.revoke(user) }
+  config.auto_login_after_password_reset = false # redirect back to login instead
+  config.mail_password_reset_template_path = "my_auth/password_reset_mailer"
+  config.mail_password_reset_template_name = "email"
+  config.before_password_reset = ->(user, params, controller) do
+    PasswordResetThrottle.allow?(user_id: user&.id, ip: controller.request.remote_ip)
+  end
+  config.password_reset_request_view = "my_auth/password_resets/request"
+  config.password_reset_edit_view = "my_auth/password_resets/edit"
+  config.password_reset_enabled = false if Rails.env.development? # hide link without SMTP
+end
+```
+
+Want to tweak copy? Override the flash messages `flash_notice_after_password_reset_email`, `flash_notice_after_password_reset`, `flash_error_after_password_reset_token_invalid`, `flash_error_after_password_reset_password_mismatch`, and `flash_error_after_password_reset_password_blank`, or shadow the mailer templates at `app/views/searls/auth/password_reset_mailer/password_reset.html.erb` and `.text.erb`.
+
 #### Triggering a (re)verification email
 
 Users can request another verification email. The engine exposes a PATCH endpoint and helper you can call from your app:

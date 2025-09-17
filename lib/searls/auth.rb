@@ -6,6 +6,8 @@ require_relative "auth/emails_link"
 require_relative "auth/engine" if defined?(Rails)
 require_relative "auth/railtie" if defined?(Rails)
 require_relative "auth/resets_session"
+require_relative "auth/delivers_password_reset"
+require_relative "auth/resets_password"
 require_relative "auth/version"
 
 module Searls
@@ -25,6 +27,11 @@ module Searls
       token_expiry_minutes: 30,
       password_verifier: ->(user, password) { user.authenticate(password) },
       password_setter: ->(user, password) { user.password = password },
+      password_reset_token_generator: ->(user) { user.generate_token_for(:password_reset) },
+      password_reset_token_finder: ->(token) { User.find_by_token_for(:password_reset, token) },
+      password_reset_token_clearer: ->(user) {},
+      password_reset_expiry_minutes: 30,
+      before_password_reset: nil,
       email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },
       email_verified_setter: ->(user, time = Time.current) { user.respond_to?(:email_verified_at) ? user.update!(email_verified_at: time) : true },
       # Controller setup
@@ -35,9 +42,13 @@ module Searls
       register_view: "searls/auth/registrations/show",
       login_view: "searls/auth/logins/show",
       verify_view: "searls/auth/verifications/show",
+      password_reset_request_view: "searls/auth/requests_password_resets/show",
+      password_reset_edit_view: "searls/auth/resets_passwords/show",
       mail_layout: "searls/auth/layouts/mailer",
       mail_login_template_path: "searls/auth/login_link_mailer",
       mail_login_template_name: "login_link",
+      mail_password_reset_template_path: "searls/auth/password_reset_mailer",
+      mail_password_reset_template_name: "password_reset",
       # Route setup
       redirect_path_after_register: ->(user, params, request, routes) {
         # Not every app defines a root_path, so guarding here:
@@ -71,12 +82,19 @@ module Searls
       flash_error_after_password_misconfigured: ->(params) {
         "Password authentication misconfigured. Add `bcrypt` to your Gemfile or override password hooks."
       },
+      flash_error_after_password_reset_token_invalid: ->(params) { "That password reset link is no longer valid. Try again?" },
+      flash_error_after_password_reset_password_mismatch: ->(params) { "Passwords must match. Try again?" },
+      flash_error_after_password_reset_password_blank: ->(params) { "Password can't be blank. Try again?" },
+      flash_error_after_password_reset_not_enabled: ->(params) { "Password resets are unavailable." },
       flash_notice_after_logout: "You've been logged out",
       flash_notice_after_verification: "You are now logged in",
       flash_notice_after_verification_email_resent: "Verification email sent",
+      flash_notice_after_password_reset_email: ->(params) { "If that email exists, password reset instructions are on the way." },
+      flash_notice_after_password_reset: ->(user, params) { "Your password has been reset." },
       flash_error_after_verify_attempt_exceeds_limit: "Too many verification attempts. Please login again to generate a new code",
       flash_error_after_verify_attempt_incorrect_short_code: "We weren't able to log you in with that code. Try again?",
-      flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?"
+      flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?",
+      auto_login_after_password_reset: true
 
     }.freeze
 

@@ -13,6 +13,11 @@ module Searls
       :token_expiry_minutes, # integer
       :password_verifier, # proc(user, password)
       :password_setter, # proc(user, password)
+      :password_reset_token_generator, # proc(user)
+      :password_reset_token_finder, # proc(token)
+      :password_reset_token_clearer, # proc(user)
+      :password_reset_expiry_minutes, # integer
+      :before_password_reset, # proc(user, params, controller)
       :email_verified_predicate, # proc(user)
       :email_verified_setter, # proc(user, time = Time.current)
       # Controller setup
@@ -23,9 +28,13 @@ module Searls
       :login_view, # string
       :register_view, # string
       :verify_view, # string
+      :password_reset_request_view, # string
+      :password_reset_edit_view, # string
       :mail_layout, # string
       :mail_login_template_path, # string
       :mail_login_template_name, # string
+      :mail_password_reset_template_path, # string
+      :mail_password_reset_template_name, # string
       # Routing setup
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :default_redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
@@ -47,12 +56,19 @@ module Searls
       :flash_error_after_login_attempt_invalid_password, # string or proc(params)
       :flash_error_after_login_attempt_unverified_email, # string or proc(resend_verification_path, params)
       :flash_error_after_password_misconfigured, # string or proc(params)
+      :flash_error_after_password_reset_token_invalid, # string or proc(params)
+      :flash_error_after_password_reset_password_mismatch, # string or proc(params)
+      :flash_error_after_password_reset_password_blank, # string or proc(params)
+      :flash_error_after_password_reset_not_enabled, # string or proc(params)
       :flash_notice_after_logout, # string or proc(params)
       :flash_notice_after_verification, # string or proc(user, params)
       :flash_notice_after_verification_email_resent, # string or proc(params)
+      :flash_notice_after_password_reset_email, # string or proc(params)
+      :flash_notice_after_password_reset, # string or proc(user, params)
       :flash_error_after_verify_attempt_exceeds_limit, # string or proc(params)
       :flash_error_after_verify_attempt_incorrect_short_code, # string or proc(params)
       :flash_error_after_verify_attempt_invalid_link, # string or proc(params)
+      :auto_login_after_password_reset, # boolean
       keyword_init: true
     ) do
       # Get values from values that might be procs
@@ -97,8 +113,31 @@ module Searls
               raise Searls::Auth::Error, "Password login requires #{missing.join(" and ")}. Add bcrypt/has_secure_password or override password hooks."
             end
           end
+
+          ensure_callable!(:password_reset_token_generator)
+          ensure_callable!(:password_reset_token_finder)
+          ensure_callable!(:password_reset_token_clearer)
+          ensure_callable_optional!(:before_password_reset)
+          self[:password_reset_expiry_minutes] = self[:password_reset_expiry_minutes].to_i if self[:password_reset_expiry_minutes]
+          self[:auto_login_after_password_reset] = !!self[:auto_login_after_password_reset]
         end
         true
+      end
+
+      private
+
+      def ensure_callable!(key)
+        value = self[key]
+        return if value.respond_to?(:call)
+
+        raise Searls::Auth::Error, "#{key} must be callable when password authentication is enabled"
+      end
+
+      def ensure_callable_optional!(key)
+        value = self[key]
+        return if value.nil? || value.respond_to?(:call)
+
+        raise Searls::Auth::Error, "#{key} must be callable when provided"
       end
     end
   end

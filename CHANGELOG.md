@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+* Add password reset flow with default controllers, mailer, views, and configuration hooks
+* Add `before_password_reset` hook to optionally throttle or reject reset requests
+* Add configurable `password_reset_request_view` and `password_reset_edit_view` settings
+
 ## [0.2.0] - 2025-09-11
 
 * Add `auth_methods` configuration with default `[:email_link, :email_otp]`

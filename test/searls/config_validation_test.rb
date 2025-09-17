@@ -5,7 +5,13 @@ class Searls::ConfigValidationTest < TLDR
       auth_methods: current.auth_methods,
       email_verification_mode: current.email_verification_mode,
       password_verifier: current.password_verifier,
-      password_setter: current.password_setter
+      password_setter: current.password_setter,
+      before_password_reset: current.before_password_reset,
+      password_reset_token_generator: current.password_reset_token_generator,
+      password_reset_token_finder: current.password_reset_token_finder,
+      password_reset_token_clearer: current.password_reset_token_clearer,
+      password_reset_expiry_minutes: current.password_reset_expiry_minutes,
+      auto_login_after_password_reset: current.auto_login_after_password_reset
     }
     @original_user_constant = Object.const_get(:User) if Object.const_defined?(:User)
   end
@@ -16,8 +22,32 @@ class Searls::ConfigValidationTest < TLDR
       c.email_verification_mode = @previous_config[:email_verification_mode]
       c.password_verifier = @previous_config[:password_verifier]
       c.password_setter = @previous_config[:password_setter]
+      c.before_password_reset = @previous_config[:before_password_reset]
+      c.password_reset_token_generator = @previous_config[:password_reset_token_generator]
+      c.password_reset_token_finder = @previous_config[:password_reset_token_finder]
+      c.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
+      c.password_reset_expiry_minutes = @previous_config[:password_reset_expiry_minutes]
+      c.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
     end
     restore_user_constant
+  end
+
+  def test_requires_callable_password_reset_hooks
+    Searls::Auth.configure do |c|
+      c.auth_methods = [:password]
+      c.password_reset_token_generator = nil
+    end
+
+    assert_raises(Searls::Auth::Error) { Searls::Auth::CONFIG.validate! }
+  end
+
+  def test_before_password_reset_must_be_callable_when_provided
+    Searls::Auth.configure do |c|
+      c.auth_methods = [:password]
+      c.before_password_reset = :nope
+    end
+
+    assert_raises(Searls::Auth::Error) { Searls::Auth::CONFIG.validate! }
   end
 
   def test_requires_email_method_when_verification_enabled

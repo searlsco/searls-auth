@@ -10,6 +10,11 @@
       <%= button_tag "Send login email", name: "send_login_email", value: "1", type: "submit" %>
     <% end %>
   </div>
+  <% if searls_auth_helper.password_reset_available? %>
+    <div>
+      <%= link_to "Forgot your password?", searls_auth_helper.password_reset_request_path %>
+    </div>
+  <% end %>
 <% end %>
 
 <p>
