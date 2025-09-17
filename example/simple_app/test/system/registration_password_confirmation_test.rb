@@ -23,6 +23,7 @@ class RegistrationPasswordConfirmationTest < ApplicationSystemTestCase
     fill_in :password, with: "sekrit"
     fill_in :password_confirmation, with: "notthesame"
     click_button "Register"
-    assert_text "Password confirmation"
+    assert_current_path searls_auth.register_path
+    assert_text "Password confirmation doesn't match Password"
   end
 end
