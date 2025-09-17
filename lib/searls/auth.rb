@@ -1,5 +1,6 @@
 require_relative "auth/authenticates_user"
 require_relative "auth/config"
+require_relative "auth/generates_full_url"
 require_relative "auth/creates_user" if defined?(Rails)
 require_relative "auth/emails_link"
 require_relative "auth/engine" if defined?(Rails)

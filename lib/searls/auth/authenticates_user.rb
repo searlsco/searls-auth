@@ -34,20 +34,20 @@ module Searls
         user = Searls::Auth.config.user_finder_by_email.call(email)
         return Result.new(success?: false) if user.blank?
 
-        if requires_verification? && !Searls::Auth.config.email_verified_predicate.call(user)
+        configuration = Searls::Auth.config
+
+        if requires_verification?(configuration) && !configuration.email_verified_predicate.call(user)
           return Result.new(success?: false, email_unverified?: true)
         end
 
-        return Result.new(success?: false) if !user.respond_to?(:password_digest) || user.password_digest.blank?
-
         begin
-          ok = Searls::Auth.config.password_verifier.call(user, password)
+          ok = configuration.password_verifier.call(user, password)
         rescue NameError
           return Result.new(success?: false) # controller will map to misconfiguration message
         end
 
         if ok
-          Searls::Auth.config.after_login_success&.call(user)
+          configuration.after_login_success&.call(user)
           Result.new(success?: true, user: user)
         else
           Result.new(success?: false)
@@ -56,8 +56,9 @@ module Searls
 
       private
 
-      def requires_verification?
-        Searls::Auth.config.email_verification_mode.to_sym == :required
+      def requires_verification?(configuration)
+        value = configuration.email_verification_mode
+        value.respond_to?(:to_sym) && value.to_sym == :required
       end
     end
   end

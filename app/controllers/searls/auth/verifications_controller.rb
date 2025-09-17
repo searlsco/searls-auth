@@ -51,13 +51,8 @@ module Searls
             :flash_notice_after_verification,
             result.user, params
           )
-          if params[:redirect_subdomain].present? && params[:redirect_subdomain] != request.subdomain
-            redirect_to generate_full_url(
-              params[:redirect_path],
-              params[:redirect_subdomain]
-            ), allow_other_host: true
-          elsif params[:redirect_path].present?
-            redirect_to params[:redirect_path]
+          if (target = full_redirect_target)
+            redirect_with_host_awareness(target)
           else
             redirect_to searls_auth_config.resolve(:default_redirect_path_after_login,
               result.user, params, request, main_app)

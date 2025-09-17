@@ -122,6 +122,40 @@ end
 
 If you enable the built‑in password login (`config.auth_methods` includes `:password`), we assume your `User` model uses `has_secure_password` (or you can provide custom hooks via `password_verifier` and `password_setter`). Verification status is checked via `email_verified_at` by default and can be customized with `email_verified_predicate`/`email_verified_setter`.
 
+### Password login
+
+Enabling `:password` adds email+password fields to the login and registration flows. Minimal setup looks like this:
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  has_secure_password validations: false
+
+  # uncomment if enabling auth_methods :email_link or :email_otp
+  # generates_token_for :email_auth, expires_in: 30.minutes
+end
+
+# db/migrate/XXXX_add_password_columns.rb
+class AddPasswordColumns < ActiveRecord::Migration[8.0]
+  def change
+    add_column :users, :password_digest, :string
+    add_column :users, :email_verified_at, :datetime
+  end
+end
+
+# config/initializers/searls_auth.rb
+Rails.application.config.after_initialize do
+  Searls::Auth.configure do |config|
+    config.auth_methods = [:password] # or any combination like [:password, :email_link, :email_otp]
+    config.email_verification_mode = :required # :none and :optional supported too
+  end
+end
+```
+
+If you already have legacy password hashing, override `password_verifier`/`password_setter` to wrap it, otherwise we'll use conventional `bcrypt` with `has_secure_password` and `password_digest` comparisons. Likewise, if email verification lives on a different column or association, use `email_verified_predicate`/`email_verified_setter` to adapt.
+
+All successful logins still render through the same flows, so make sure your app handles `session[:user_id]` uniformly regardless of which auth method succeeded.
+
 #### Triggering a (re)verification email
 
 Users can request another verification email. The engine exposes a PATCH endpoint and helper you can call from your app:
@@ -145,6 +179,17 @@ end
 ```
 
 - Or create views that shadow the engine’s defaults at `app/views/searls/auth/login_link_mailer/login_link.html.erb` and `.text.erb` in your app.
+
+### Common configurations
+
+| `auth_methods` | `email_verification_mode` | Behavior |
+| --- | --- | --- |
+| `[:email_link, :email_otp]` (default) | `:none` | Passwordless magic link + short code. Registration links go straight to the verify screen. |
+| `[:password]` | `:none` | Classic email/password. No email is sent; verify routes redirect back to login. |
+| `[:password, :email_link, :email_otp]` | `:optional` | Users can log in with either password or email. Registration logs the user in immediately and also emails a verification link. |
+| `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_verification_path`. |
+
+In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain (cross-subdomain redirects still work via `redirect_subdomain`).
 
 ## Use it
 

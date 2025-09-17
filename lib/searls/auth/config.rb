@@ -70,8 +70,12 @@ module Searls
 
       def validate!
         methods = auth_methods
-        if self[:email_verification_mode].to_sym != :none && (methods & [:email_link, :email_otp]).empty?
-          raise Searls::Auth::Error, "email_verification_mode is #{self[:email_verification_mode].inspect} but no email auth methods are enabled"
+        mode_value = self[:email_verification_mode]
+        mode = mode_value.respond_to?(:to_sym) ? mode_value.to_sym : :none
+        self[:email_verification_mode] = mode
+
+        if mode != :none && (methods & [:email_link, :email_otp]).empty?
+          raise Searls::Auth::Error, "email_verification_mode is #{mode.inspect} but no email auth methods are enabled"
         end
 
         if methods.include?(:password)
