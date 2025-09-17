@@ -9,4 +9,5 @@ Searls::Auth::Engine.routes.draw do
   get "login/verify", to: "verifications#show", as: :verify
   post "login/verify", to: "verifications#create"
   get "login/verify_token", to: "verifications#create", as: :verify_token
+  patch "login/resend_verification", to: "verifications#resend", as: :resend_verification
 end

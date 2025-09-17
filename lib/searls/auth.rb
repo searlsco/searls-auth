@@ -13,6 +13,7 @@ module Searls
 
     DEFAULT_CONFIG = {
       auth_methods: [:email_link, :email_otp],
+      email_verification_mode: :none,
       # Data setup
       user_finder_by_email: ->(email) { User.find_by(email:) },
       user_finder_by_id: ->(id) { User.find_by(id:) },
@@ -21,6 +22,10 @@ module Searls
       user_name_method: "name",
       token_generator: ->(user) { user.generate_token_for(:email_auth) },
       token_expiry_minutes: 30,
+      password_verifier: ->(user, password) { user.authenticate(password) },
+      password_setter: ->(user, password) { user.password = password },
+      email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },
+      email_verified_setter: ->(user, time = Time.current) { user.respond_to?(:email_verified_at) ? user.update!(email_verified_at: time) : true },
       # Controller setup
       preserve_session_keys_after_logout: [],
       max_allowed_short_code_attempts: 10,
@@ -58,8 +63,16 @@ module Searls
       flash_error_after_login_attempt_unknown_email: ->(register_path, params) {
         "We don't know that email. <a href=\"#{register_path}\">Sign up</a> instead?".html_safe
       },
+      flash_error_after_login_attempt_invalid_password: ->(params) { "Invalid password. Try again?" },
+      flash_error_after_login_attempt_unverified_email: ->(resend_path, params) {
+        "You must verify your email before logging in. <a href=\"#{resend_path}\" data-turbo-method=\"patch\">Resend verification email</a>".html_safe
+      },
+      flash_error_after_password_misconfigured: ->(params) {
+        "Password authentication misconfigured. Add `bcrypt` to your Gemfile or override password hooks."
+      },
       flash_notice_after_logout: "You've been logged out",
       flash_notice_after_verification: "You are now logged in",
+      flash_notice_after_verification_email_resent: "Verification email sent",
       flash_error_after_verify_attempt_exceeds_limit: "Too many verification attempts. Please login again to generate a new code",
       flash_error_after_verify_attempt_incorrect_short_code: "We weren't able to log you in with that code. Try again?",
       flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?"

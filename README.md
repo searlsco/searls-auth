@@ -104,6 +104,48 @@ end
 
 One reason you might want to disable e-mail OTP is that it exposes your users to [a pretty easy-to-implement man-in-the-middle attack](https://blog.danielh.cc/blog/passwords).
 
+### Email verification modes
+
+Control whether registration triggers verification emails and whether password login requires a verified email.
+
+```ruby
+# config/initializers/searls_auth.rb
+Rails.application.config.after_initialize do
+  Searls::Auth.configure do |config|
+    # :none (default): No verification emails on registration; password login allowed immediately.
+    # :optional: Send a verification email on registration, but do not block password login.
+    # :required: Send a verification email on registration and block password login until verified.
+    config.email_verification_mode = :none # or :optional, :required
+  end
+end
+```
+
+If you enable the built‑in password login (`config.auth_methods` includes `:password`), we assume your `User` model uses `has_secure_password` (or you can provide custom hooks via `password_verifier` and `password_setter`). Verification status is checked via `email_verified_at` by default and can be customized with `email_verified_predicate`/`email_verified_setter`.
+
+#### Triggering a (re)verification email
+
+Users can request another verification email. The engine exposes a PATCH endpoint and helper you can call from your app:
+
+```erb
+<%# Anywhere in your app %>
+<%= link_to "Resend verification email",
+            searls_auth.resend_verification_path(email: current_user.email),
+            data: { turbo_method: :patch } %>
+```
+
+This uses the same mailer and template as login emails. You can override the template in two ways:
+
+- Configure the template path/name:
+
+```ruby
+Searls::Auth.configure do |config|
+  config.mail_login_template_path = "my_auth/mailer"
+  config.mail_login_template_name = "login_link"
+end
+```
+
+- Or create views that shadow the engine’s defaults at `app/views/searls/auth/login_link_mailer/login_link.html.erb` and `.text.erb` in your app.
+
 ## Use it
 
 Of course, having a user be "logged in" or not doesn't mean anything if your application doesn't do anything with the knowledge. Users that are logged in will have `session[:user_id]` set to the value of the logged-in user's ID. Logged out users won't have anything set to `session[:user_id]`. What you do with that is your job, not this gem. (Wait, after 20 years does this mean I finally understand the difference between authentication and authorization? Better late than never.)

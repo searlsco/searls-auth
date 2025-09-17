@@ -14,10 +14,18 @@ module Searls
           Result.new(nil, false, ["An account already exists for that email address. <a href=\"#{login_path(**forwardable_params(params))}\">Log in</a> instead?".html_safe])
         elsif (errors = Searls::Auth.config.validate_registration.call(user, params, [])).any?
           Result.new(nil, false, errors)
-        elsif user.save
-          Result.new(user, true)
         else
-          Result.new(user, false, simplified_error_messages(user))
+          if params[:password].present?
+            Searls::Auth.config.password_setter.call(user, params[:password])
+            if params[:password_confirmation].present? && user.respond_to?(:password_confirmation=)
+              user.password_confirmation = params[:password_confirmation]
+            end
+          end
+          if user.save
+            Result.new(user, true)
+          else
+            Result.new(user, false, simplified_error_messages(user))
+          end
         end
       end
 

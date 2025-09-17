@@ -3,8 +3,7 @@
 <%= form_with url: searls_auth.register_path, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
   <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
   <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
-  <%= f.label :email %>
-  <%= f.email_field :email, value: params[:email], required: true, data: searls_auth_helper.email_field_stimulus_data %>
+  <%= render "searls/auth/shared/register_fields", f: f %>
   <%= f.submit "Register" %>
 <% end %>
 
