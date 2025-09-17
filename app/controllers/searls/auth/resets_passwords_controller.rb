@@ -31,7 +31,7 @@ module Searls
       private
 
       def ensure_password_reset_enabled
-        return if searls_auth_config.auth_methods.include?(:password)
+        return if searls_auth_config.password_reset_enabled?
 
         flash[:error] = searls_auth_config.resolve(:flash_error_after_password_reset_not_enabled, params)
         redirect_to searls_auth.login_path(
@@ -66,6 +66,7 @@ module Searls
           )
         end
       end
+
     end
   end
 end

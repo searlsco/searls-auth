@@ -30,7 +30,7 @@ module Searls
       end
 
       def password_reset_available?
-        Searls::Auth.config.auth_methods.include?(:password)
+        Searls::Auth.config.password_reset_enabled?
       end
 
       def login_stimulus_controller

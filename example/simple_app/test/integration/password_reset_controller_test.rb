@@ -11,7 +11,8 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
       password_reset_token_finder: current.password_reset_token_finder,
       password_reset_token_clearer: current.password_reset_token_clearer,
       before_password_reset: current.before_password_reset,
-      auto_login_after_password_reset: current.auto_login_after_password_reset
+      auto_login_after_password_reset: current.auto_login_after_password_reset,
+      password_reset_enabled: current.password_reset_enabled
     }
 
     Searls::Auth.configure do |config|
@@ -37,6 +38,7 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
       config.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
       config.before_password_reset = @previous_config[:before_password_reset]
       config.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
+      config.password_reset_enabled = @previous_config[:password_reset_enabled]
     end
 
     User.delete_all
@@ -45,6 +47,17 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
   def test_request_form_redirects_when_password_disabled
     Searls::Auth.configure do |config|
       config.auth_methods = [:email_link]
+    end
+
+    get searls_auth.password_reset_request_path
+
+    assert_redirected_to searls_auth.login_path
+    assert flash[:error].present?
+  end
+
+  def test_request_form_redirects_when_password_reset_disabled
+    Searls::Auth.configure do |config|
+      config.password_reset_enabled = false
     end
 
     get searls_auth.password_reset_request_path

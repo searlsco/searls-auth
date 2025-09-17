@@ -31,17 +31,13 @@ module Searls
       private
 
       def ensure_password_reset_enabled
-        return if password_auth_enabled?
+        return if searls_auth_config.password_reset_enabled?
 
         flash[:error] = searls_auth_config.resolve(:flash_error_after_password_reset_not_enabled, params)
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
         ) and return
-      end
-
-      def password_auth_enabled?
-        searls_auth_config.auth_methods.include?(:password)
       end
 
       def deliverable_user?(user)
@@ -58,6 +54,7 @@ module Searls
         result = hook.call(user, params, self)
         !(result == false || result == :halt)
       end
+
     end
   end
 end

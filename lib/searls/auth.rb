@@ -32,6 +32,7 @@ module Searls
       password_reset_token_clearer: ->(user) {},
       password_reset_expiry_minutes: 30,
       before_password_reset: nil,
+      password_reset_enabled: true,
       email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },
       email_verified_setter: ->(user, time = Time.current) { user.respond_to?(:email_verified_at) ? user.update!(email_verified_at: time) : true },
       # Controller setup
