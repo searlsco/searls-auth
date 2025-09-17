@@ -102,16 +102,6 @@ module Searls
           render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         end
       end
-
-      def redirect_after_login(user)
-        target = full_redirect_target
-        if target
-          redirect_with_host_awareness(target)
-        else
-          redirect_to searls_auth_config.resolve(:default_redirect_path_after_login,
-            user, params, request, main_app)
-        end
-      end
     end
   end
 end

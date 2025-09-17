@@ -25,6 +25,14 @@ module Searls
         routes.register_url(forwardable_params.merge(kwargs))
       end
 
+      def password_reset_request_path(**kwargs)
+        routes.password_reset_request_path(forwardable_params.merge(kwargs))
+      end
+
+      def password_reset_available?
+        Searls::Auth.config.auth_methods.include?(:password)
+      end
+
       def login_stimulus_controller
         "searls-auth-login"
       end

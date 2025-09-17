@@ -54,6 +54,18 @@ module Searls
         redirect_to target, **options
       end
 
+      def redirect_after_login(user)
+        target = full_redirect_target
+        if target
+          redirect_with_host_awareness(target)
+        else
+          redirect_to searls_auth_config.resolve(
+            :default_redirect_path_after_login,
+            user, params, request, main_app
+          )
+        end
+      end
+
       private
 
       def sanitize_redirect_parameters
