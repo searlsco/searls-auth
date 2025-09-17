@@ -1,4 +1,5 @@
 require "securerandom"
+require "uri"
 
 module Searls
   module Auth
@@ -36,6 +37,29 @@ module Searls
       def log_short_code_verification_attempt!
         session[:searls_auth_short_code_verification_attempts] ||= 0
         session[:searls_auth_short_code_verification_attempts] += 1
+      end
+
+      def generate_full_url(path, subdomain)
+        return path if path&.start_with?("http://", "https://")
+
+        uri = URI.parse(request.base_url)
+        host_parts = uri.host.split(".")
+        if request.subdomain.present?
+          host_parts[0] = subdomain
+        else
+          host_parts.unshift(subdomain)
+        end
+        uri.host = host_parts.join(".")
+
+        target = path.presence || "/"
+        path_and_query, fragment = target.split("#", 2)
+        path_segment, query = path_and_query.split("?", 2)
+
+        uri.path = path_segment.start_with?("/") ? path_segment : "/#{path_segment}"
+        uri.query = query
+        uri.fragment = fragment
+
+        uri.to_s
       end
     end
   end

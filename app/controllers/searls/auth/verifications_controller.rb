@@ -123,12 +123,6 @@ module Searls
 
       private
 
-      def generate_full_url(path, subdomain)
-        port = request.port
-        port_string = (port == 80 || port == 443) ? "" : ":#{port}"
-
-        "#{request.protocol}#{subdomain}.#{request.domain}#{port_string}#{path}"
-      end
     end
   end
 end
