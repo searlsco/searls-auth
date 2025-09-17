@@ -120,9 +120,6 @@ module Searls
           )
         end
       end
-
-      private
-
     end
   end
 end
