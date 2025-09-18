@@ -3,7 +3,7 @@ module Searls
     class ResetsPasswordsController < BaseController
       before_action :ensure_password_reset_enabled
       before_action :load_user_from_token
-      before_action :clear_short_code_from_session!, only: [:show, :update]
+      before_action :clear_email_otp_from_session!, only: [:show, :update]
 
       def show
         @token = params[:token]

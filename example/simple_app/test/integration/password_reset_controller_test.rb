@@ -9,17 +9,16 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
       auth_methods: current.auth_methods,
       password_reset_token_generator: current.password_reset_token_generator,
       password_reset_token_finder: current.password_reset_token_finder,
-      password_reset_token_clearer: current.password_reset_token_clearer,
       before_password_reset: current.before_password_reset,
       auto_login_after_password_reset: current.auto_login_after_password_reset,
-      password_reset_enabled: current.password_reset_enabled
+      password_reset_enabled: current.password_reset_enabled,
+      email_otp_expiry_minutes: current.email_otp_expiry_minutes
     }
 
     Searls::Auth.configure do |config|
       config.auth_methods = [:password]
       config.password_reset_token_generator = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_generator]
       config.password_reset_token_finder = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_finder]
-      config.password_reset_token_clearer = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_clearer]
       config.auto_login_after_password_reset = true
     end
 
@@ -35,10 +34,10 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
       config.auth_methods = @previous_config[:auth_methods]
       config.password_reset_token_generator = @previous_config[:password_reset_token_generator]
       config.password_reset_token_finder = @previous_config[:password_reset_token_finder]
-      config.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
       config.before_password_reset = @previous_config[:before_password_reset]
       config.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
       config.password_reset_enabled = @previous_config[:password_reset_enabled]
+      config.email_otp_expiry_minutes = @previous_config[:email_otp_expiry_minutes]
     end
 
     User.delete_all

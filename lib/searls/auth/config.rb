@@ -10,12 +10,10 @@ module Searls
       :user_initializer, # proc(params)
       :user_name_method, # string
       :token_generator, # proc()
-      :token_expiry_minutes, # integer
       :password_verifier, # proc(user, password)
       :password_setter, # proc(user, password)
       :password_reset_token_generator, # proc(user)
       :password_reset_token_finder, # proc(token)
-      :password_reset_token_clearer, # proc(user)
       :before_password_reset, # proc(user, params, controller)
       :password_reset_enabled, # boolean
       :email_verified_predicate, # proc(user)
@@ -23,7 +21,8 @@ module Searls
       :password_present_predicate, # proc(user)
       # Controller setup
       :preserve_session_keys_after_logout, # array of symbols
-      :max_allowed_short_code_attempts, # integer
+      :max_allowed_email_otp_attempts, # integer (email OTP attempts)
+      :email_otp_expiry_minutes, # integer
       # View setup
       :layout, # string
       :login_view, # string
@@ -39,14 +38,13 @@ module Searls
       :mail_password_reset_template_name, # string
       # Routing setup
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
-      :default_redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
+      :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
       # Hook setup
       :validate_registration, # proc(user, params, errors = []), must return an array of error messages where empty means valid
       :after_login_success, # proc(user)
       # Branding setup
       :app_name, # string
       :app_url, # string
-      :support_email_address, # string
       :email_banner_image_path, # string
       :email_background_color, # string
       :email_button_color, # string
@@ -68,7 +66,7 @@ module Searls
       :flash_notice_after_password_reset_email, # string or proc(params)
       :flash_notice_after_password_reset, # string or proc(user, params)
       :flash_error_after_verify_attempt_exceeds_limit, # string or proc(params)
-      :flash_error_after_verify_attempt_incorrect_short_code, # string or proc(params)
+      :flash_error_after_verify_attempt_incorrect_email_otp, # string or proc(params)
       :flash_error_after_verify_attempt_invalid_link, # string or proc(params)
       :flash_notice_after_settings_update, # string or proc(user, params)
       :flash_notice_after_settings_email_verification_sent, # string or proc(user, params)
@@ -134,7 +132,6 @@ module Searls
 
           ensure_callable!(:password_reset_token_generator)
           ensure_callable!(:password_reset_token_finder)
-          ensure_callable!(:password_reset_token_clearer)
           ensure_callable_optional!(:before_password_reset)
           ensure_callable_optional!(:password_present_predicate)
           self[:auto_login_after_password_reset] = !!self[:auto_login_after_password_reset]

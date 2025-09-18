@@ -25,12 +25,11 @@ module Searls
       user_initializer: ->(params) { User.new(email: params[:email]) },
       user_name_method: "name",
       token_generator: ->(user) { user.generate_token_for(:email_auth) },
-      token_expiry_minutes: 30,
+      email_otp_expiry_minutes: 30,
       password_verifier: ->(user, password) { user.authenticate(password) },
       password_setter: ->(user, password) { user.password = password },
       password_reset_token_generator: ->(user) { user.generate_token_for(:password_reset) },
       password_reset_token_finder: ->(token) { User.find_by_token_for(:password_reset, token) },
-      password_reset_token_clearer: ->(user) {},
       before_password_reset: nil,
       password_reset_enabled: true,
       email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },
@@ -38,7 +37,7 @@ module Searls
       password_present_predicate: ->(user) { user.respond_to?(:password_digest) && user.password_digest.present? },
       # Controller setup
       preserve_session_keys_after_logout: [],
-      max_allowed_short_code_attempts: 10,
+      max_allowed_email_otp_attempts: 10,
       # View setup
       layout: "application",
       register_view: "searls/auth/registrations/show",
@@ -57,7 +56,7 @@ module Searls
         # Not every app defines a root_path, so guarding here:
         routes.respond_to?(:root_path) ? routes.root_path : "/"
       },
-      default_redirect_path_after_login: ->(user, params, request, routes) {
+      redirect_path_after_login: ->(user, params, request, routes) {
         # Not every app defines a root_path, so guarding here:
         routes.respond_to?(:root_path) ? routes.root_path : "/"
       },
@@ -67,7 +66,6 @@ module Searls
       # Branding setup
       app_name: nil,
       app_url: nil,
-      support_email_address: nil,
       email_background_color: "#d8d7ed",
       email_button_color: "#c664f3",
       email_banner_image_path: nil,
@@ -95,7 +93,7 @@ module Searls
       flash_notice_after_password_reset_email: ->(params) { "If that email exists, password reset instructions are on the way." },
       flash_notice_after_password_reset: ->(user, params) { "Your password has been reset." },
       flash_error_after_verify_attempt_exceeds_limit: "Too many verification attempts. Please login again to generate a new code",
-      flash_error_after_verify_attempt_incorrect_short_code: "We weren't able to log you in with that code. Try again?",
+      flash_error_after_verify_attempt_incorrect_email_otp: "We weren't able to log you in with that code. Try again?",
       flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?",
       flash_notice_after_settings_update: ->(user, params) { "Settings updated." },
       flash_notice_after_settings_email_verification_sent: ->(user, params) { "Please check your email to verify the new address." },

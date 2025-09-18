@@ -6,7 +6,7 @@
       Hello!
     <% end %>
   </p>
-<% if Searls::Auth.config.auth_methods.include?(:email_link) %>
+<% if @config.auth_methods.include?(:email_link) %>
   <p style="margin-top: 1rem;">
     You can log in by clicking this button:
     <div style="margin-top: 2rem; text-align: center;">
@@ -18,17 +18,17 @@
         <span style="width: 70%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); display: inline-block; padding-left: 2rem; padding-right: 2rem; padding-top: 1rem; padding-bottom: 1rem; font-size: 1.5rem; font-weight: 700; border-radius: 0.75rem; background-color: <%= @config.email_button_color %>; color: white;">Log in</span>
       <% end %>
       <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">
-        (This link will expire in <%= @config.token_expiry_minutes %> minutes.)
+        (This link expires soon, so we recommend using it right away.)
       </div>
     </div>
   </p>
 <% end %>
-<% if Searls::Auth.config.auth_methods.include?(:email_otp) && @short_code.present? %>
+<% if @config.auth_methods.include?(:email_otp) && @email_otp.present? %>
   <p style="margin-top: 2rem;">
     You can log in by entering this code:
     <div style="margin-top: 2rem; text-align: center;">
       <span id="one-time-code" style="width: 70%; display: inline-block; padding-left: 2rem; padding-right: 2rem; padding-top: 1rem; padding-bottom: 1rem; font-size: 1.5rem; font-weight: 700; border: 1px solid; border-radius: 0.75rem; background-color: #f3f4f6; border-color: #e5e7eb;">
-        <%= @short_code %>
+        <%= @email_otp %>
       </span>
       <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">
         (So will this code.)
@@ -37,5 +37,5 @@
   </p>
 <% end %>
 <p style="margin-top: 2rem; font-size: 0.875rem; color: #6b7280;">
-  p.s. Didn't try to log in? You can safely ignore this email. If this keeps happening, please <%= link_to "let us know", "mailto:#{@config.support_email_address}" %>.
+  p.s. Didn't try to log in? You can safely ignore this email.
 </p>

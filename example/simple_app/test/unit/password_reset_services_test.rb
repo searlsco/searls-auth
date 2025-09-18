@@ -9,16 +9,15 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
       auth_methods: current.auth_methods,
       password_reset_token_generator: current.password_reset_token_generator,
       password_reset_token_finder: current.password_reset_token_finder,
-      password_reset_token_clearer: current.password_reset_token_clearer,
       before_password_reset: current.before_password_reset,
-      auto_login_after_password_reset: current.auto_login_after_password_reset
+      auto_login_after_password_reset: current.auto_login_after_password_reset,
+      email_otp_expiry_minutes: current.email_otp_expiry_minutes
     }
 
     Searls::Auth.configure do |config|
       config.auth_methods = [:password]
       config.password_reset_token_generator = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_generator]
       config.password_reset_token_finder = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_finder]
-      config.password_reset_token_clearer = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_clearer]
       config.auto_login_after_password_reset = true
     end
 
@@ -34,9 +33,9 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
       config.auth_methods = @previous_config[:auth_methods]
       config.password_reset_token_generator = @previous_config[:password_reset_token_generator]
       config.password_reset_token_finder = @previous_config[:password_reset_token_finder]
-      config.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
       config.before_password_reset = @previous_config[:before_password_reset]
       config.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
+      config.email_otp_expiry_minutes = @previous_config[:email_otp_expiry_minutes]
     end
 
     User.delete_all
@@ -67,11 +66,6 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
   end
 
   def test_resets_password_successfully
-    cleared = []
-    Searls::Auth.configure do |config|
-      config.password_reset_token_clearer = ->(user) { cleared << user.id }
-    end
-
     result = Searls::Auth::ResetsPassword.new.reset(
       user: @user,
       password: "changeit",
@@ -79,7 +73,6 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
     )
 
     assert result.success?
-    assert_equal [@user.id], cleared
     assert @user.reload.authenticate("changeit")
   end
 

@@ -93,6 +93,9 @@ Rails.application.config.after_initialize do
     # Defaults:
     config.auth_methods = [:email_link, :email_otp]
 
+    # Email OTPs expire after 30 minutes by default.
+    # config.email_otp_expiry_minutes = 10
+
     # Link-only (no code in emails, no OTP input shown):
     # config.auth_methods = :email_link
 
@@ -158,6 +161,10 @@ If you already have legacy password hashing, override `password_verifier`/`passw
 
 All successful logins still render through the same flows, so make sure your app handles `session[:user_id]` uniformly regardless of which auth method succeeded.
 
+If a registration request doesn't supply a `redirect_path` parameter, searls-auth now falls back to `config.redirect_path_after_register` when choosing both the post-registration redirect and the link embedded in verification emails. Override that proc to point brand-new users somewhere more purposeful than the default root path.
+
+Likewise, successful logins fall back to `config.redirect_path_after_login` whenever no redirect parameters are supplied. Set it to a dashboard or home screen to spare users from landing on `/`.
+
 ### Password reset
 
 When `auth_methods` includes `:password`, the engine renders a "Forgot your password?" link beneath the login form. Clicking it walks through a two-step flow: request a reset email and then choose a new password. To enable it, make sure your `User` model issues a token named `:password_reset`. If your app cannot send email, disable the link entirely with `config.password_reset_enabled = false`.
@@ -185,7 +192,6 @@ By default we generate tokens via `generates_token_for`, send mail from `Searls:
 Searls::Auth.configure do |config|
   config.password_reset_token_generator = ->(user) { user.generate_token_for(:password_reset) }
   config.password_reset_token_finder = ->(token) { PasswordResetTokenStore.lookup(token) }
-  config.password_reset_token_clearer = ->(user) { PasswordResetTokenStore.revoke(user) }
   config.auto_login_after_password_reset = false # redirect back to login instead
   config.mail_password_reset_template_path = "my_auth/password_reset_mailer"
   config.mail_password_reset_template_name = "email"
@@ -236,7 +242,7 @@ end
 
 | `auth_methods` | `email_verification_mode` | Behavior |
 | --- | --- | --- |
-| `[:email_link, :email_otp]` (default) | `:none` | Passwordless magic link + short code. Registration links go straight to the verify screen. |
+| `[:email_link, :email_otp]` (default) | `:none` | Passwordless magic link + email OTP. Registration links go straight to the verify screen. |
 | `[:password]` | `:none` | Classic email/password. No email is sent; verify routes redirect back to login. |
 | `[:password, :email_link, :email_otp]` | `:optional` | Users can log in with either password or email. Registration logs the user in immediately and also emails a verification link. |
 | `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_verification_path`. |

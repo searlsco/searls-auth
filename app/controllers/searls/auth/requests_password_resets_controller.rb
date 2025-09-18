@@ -2,7 +2,7 @@ module Searls
   module Auth
     class RequestsPasswordResetsController < BaseController
       before_action :ensure_password_reset_enabled
-      before_action :clear_short_code_from_session!, only: [:show, :create]
+      before_action :clear_email_otp_from_session!, only: [:show, :create]
 
       def show
         render searls_auth_config.password_reset_request_view, layout: searls_auth_config.layout

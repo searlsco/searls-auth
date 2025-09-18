@@ -60,9 +60,7 @@ module Searls
         ) and return
       end
 
-      def settings_user
-        @settings_user
-      end
+      attr_reader :settings_user
 
       def password_on_file?
         @password_on_file ||= settings_user && searls_auth_config.password_present?(settings_user)
@@ -81,19 +79,19 @@ module Searls
         email_methods_enabled = (searls_auth_config.auth_methods & [:email_link, :email_otp]).any?
         return unless email_methods_enabled
 
+        email_otp = nil
         if searls_auth_config.auth_methods.include?(:email_otp)
-          attach_short_code_to_session!(settings_user)
-          short_code = session[:searls_auth_short_code]
+          attach_email_otp_to_session!(settings_user)
+          email_otp = session[:searls_auth_email_otp]
         else
-          clear_short_code_from_session!
-          short_code = nil
+          clear_email_otp_from_session!
         end
 
         EmailsLink.new.email(
           user: settings_user,
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain],
-          short_code:
+          email_otp: email_otp
         )
 
         current_notice = Array(flash[:notice]).compact_blank

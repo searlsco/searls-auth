@@ -1,17 +1,19 @@
 module Searls
   module Auth
     class AuthenticatesUser
-      Result = Struct.new(:success?, :user, :exceeded_short_code_attempt_limit?, :email_unverified?, keyword_init: true)
+      Result = Struct.new(:success?, :user, :exceeded_email_otp_attempt_limit?, :email_unverified?, keyword_init: true)
 
-      def authenticate_by_short_code(short_code, session)
-        if session[:searls_auth_short_code_verification_attempts] > Searls::Auth.config.max_allowed_short_code_attempts
-          return Result.new(success?: false, exceeded_short_code_attempt_limit?: true)
+      def authenticate_by_email_otp(email_otp, session)
+        if session[:searls_auth_email_otp_verification_attempts] > Searls::Auth.config.max_allowed_email_otp_attempts
+          return Result.new(success?: false, exceeded_email_otp_attempt_limit?: true)
         end
 
-        if session[:searls_auth_short_code_generated_at].present? &&
-            Time.zone.parse(session[:searls_auth_short_code_generated_at]) > Searls::Auth.config.token_expiry_minutes.minutes.ago &&
-            short_code == session[:searls_auth_short_code] &&
-            (user = Searls::Auth.config.user_finder_by_id.call(session[:searls_auth_short_code_user_id])).present?
+        generated_at_value = session[:searls_auth_email_otp_generated_at]
+        if generated_at_value.present? &&
+            (generated_at = parse_otp_timestamp(generated_at_value)) &&
+            generated_at > email_otp_expiry_cutoff &&
+            email_otp == session[:searls_auth_email_otp] &&
+            (user = Searls::Auth.config.user_finder_by_id.call(session[:searls_auth_email_otp_user_id])).present?
           Searls::Auth.config.after_login_success&.call(user)
           Result.new(success?: true, user: user)
         else
@@ -59,6 +61,17 @@ module Searls
       def requires_verification?(configuration)
         value = configuration.email_verification_mode
         value.respond_to?(:to_sym) && value.to_sym == :required
+      end
+
+      def email_otp_expiry_cutoff
+        minutes = Searls::Auth.config.email_otp_expiry_minutes.to_i
+        Time.zone.now - (minutes * 60)
+      end
+
+      def parse_otp_timestamp(value)
+        Time.zone.parse(value.to_s)
+      rescue ArgumentError, TypeError
+        nil
       end
     end
   end

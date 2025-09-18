@@ -4,7 +4,7 @@ Hi, <%= user_name %>!
 Hello!
 <% end %>
 
-<% if Searls::Auth.config.auth_methods.include?(:email_link) %>
+<% if @config.auth_methods.include?(:email_link) %>
 You can log in by visiting this URL for your <%= searls_auth_helper.rpad(@config.app_name) %>account:
 
 <%= searls_auth.verify_token_url({
@@ -14,12 +14,11 @@ You can log in by visiting this URL for your <%= searls_auth_helper.rpad(@config
 }.compact_blank) %>
 <% end %>
 
-<% if Searls::Auth.config.auth_methods.include?(:email_otp) && @short_code.present? %>
+<% if @config.auth_methods.include?(:email_otp) && @email_otp.present? %>
 
 You can log in by entering this code:
 
-<%= @short_code %>
+<%= @email_otp %>
 <% end %>
 
-Didn't try to log in? You can safely ignore this email.<%= " If this keeps
-happening, please let us know at #{@config.support_email_address}" if @config.support_email_address.present? %>
+Didn't try to log in? You can safely ignore this email.

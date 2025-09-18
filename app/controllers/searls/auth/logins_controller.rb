@@ -1,7 +1,7 @@
 module Searls
   module Auth
     class LoginsController < BaseController
-      before_action :reset_expired_short_code
+      before_action :reset_expired_email_otp
 
       def show
         render searls_auth_config.login_view, layout: searls_auth_config.layout
@@ -70,16 +70,16 @@ module Searls
 
         if user.present?
           if searls_auth_config.auth_methods.include?(:email_otp)
-            attach_short_code_to_session!(user)
+            attach_email_otp_to_session!(user)
           else
-            clear_short_code_from_session!
+            clear_email_otp_from_session!
           end
 
           EmailsLink.new.email(
             user:,
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain],
-            short_code: session[:searls_auth_short_code]
+            email_otp: session[:searls_auth_email_otp]
           )
           flash[:notice] = searls_auth_config.resolve(
             :flash_notice_after_login_attempt,

@@ -7,7 +7,7 @@ module Searls
         @token = params[:token]
         @redirect_path = params[:redirect_path]
         @redirect_subdomain = params[:redirect_subdomain]
-        @short_code = params[:short_code]
+        @email_otp = params[:email_otp]
 
         mail(
           to: format_to(@user),
@@ -24,8 +24,8 @@ module Searls
 
       def mail_subject
         methods = Searls::Auth.config.auth_methods
-        if methods.include?(:email_otp) && @short_code.present?
-          "Your #{searls_auth_helper.rpad(@config.app_name)}login code is #{@short_code}"
+        if methods.include?(:email_otp) && @email_otp.present?
+          "Your #{searls_auth_helper.rpad(@config.app_name)}login code is #{@email_otp}"
         else
           "Your #{searls_auth_helper.rpad(@config.app_name)}login link"
         end

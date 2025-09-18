@@ -122,7 +122,7 @@ Since we're starting from a blank app, we need a `users` table and corresponding
 * Your user model is named `User`
 * A user's unique ID is stored in the `id` column and email address in the `email` column (override with `user_finder_by_id` and `user_finder_by_email`, respectively)
 * Optionally, if the user's name is available anywhere, it's accessible via `User#name` (override with `user_name_method`)
-* The `User` model calls [generates_token for](https://api.rubyonrails.org/classes/ActiveRecord/TokenFor/ClassMethods.html#method-i-generates_token_for) to create a token named `email_auth` (override with `token_generator` and `user_finder_by_token`) and an expiry of `30.minutes` (override with `token_expiry_minutes`)
+* The `User` model calls [generates_token for](https://api.rubyonrails.org/classes/ActiveRecord/TokenFor/ClassMethods.html#method-i-generates_token_for) to create a token named `email_auth` (override with `token_generator` and `user_finder_by_token`)
 
 Let's fulfill those default assumptions in this example app. Next I ran `bin/rails g migration create_users` to generate this migration file:
 

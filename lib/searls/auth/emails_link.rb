@@ -1,11 +1,11 @@
 module Searls
   module Auth
     class EmailsLink
-      def email(user:, short_code:, redirect_path: nil, redirect_subdomain: nil)
+      def email(user:, email_otp:, redirect_path: nil, redirect_subdomain: nil)
         LoginLinkMailer.with(
           user:,
           token: (Searls::Auth.config.auth_methods.include?(:email_link) ? generate_token!(user) : nil),
-          short_code: (Searls::Auth.config.auth_methods.include?(:email_otp) ? short_code : nil),
+          email_otp: (Searls::Auth.config.auth_methods.include?(:email_otp) ? email_otp : nil),
           redirect_path:,
           redirect_subdomain:
         ).login_link.deliver_later

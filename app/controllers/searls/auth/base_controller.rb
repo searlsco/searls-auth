@@ -14,30 +14,44 @@ module Searls
         Searls::Auth.config
       end
 
-      def attach_short_code_to_session!(user)
-        session[:searls_auth_short_code_user_id] = user.id
-        session[:searls_auth_short_code] = SecureRandom.random_number(1000000).to_s.rjust(6, "0")
-        session[:searls_auth_short_code_generated_at] = Time.current
-        session[:searls_auth_short_code_verification_attempts] = 0
+      def attach_email_otp_to_session!(user)
+        session[:searls_auth_email_otp_user_id] = user.id
+        session[:searls_auth_email_otp] = SecureRandom.random_number(1000000).to_s.rjust(6, "0")
+        session[:searls_auth_email_otp_generated_at] = Time.current
+        session[:searls_auth_email_otp_verification_attempts] = 0
       end
 
-      def reset_expired_short_code
-        if session[:searls_auth_short_code_generated_at].present? &&
-            Time.zone.parse(session[:searls_auth_short_code_generated_at]) < Searls::Auth.config.token_expiry_minutes.minutes.ago
-          clear_short_code_from_session!
+      def reset_expired_email_otp
+        generated_at = session[:searls_auth_email_otp_generated_at]
+        if generated_at.present?
+          parsed = otp_generated_at(generated_at)
+          if parsed && parsed < otp_expiry_cutoff
+            clear_email_otp_from_session!
+          end
         end
       end
 
-      def clear_short_code_from_session!
-        session.delete(:searls_auth_short_code_user_id)
-        session.delete(:searls_auth_short_code_generated_at)
-        session.delete(:searls_auth_short_code)
-        session.delete(:searls_auth_short_code_verification_attempts)
+      def clear_email_otp_from_session!
+        session.delete(:searls_auth_email_otp_user_id)
+        session.delete(:searls_auth_email_otp_generated_at)
+        session.delete(:searls_auth_email_otp)
+        session.delete(:searls_auth_email_otp_verification_attempts)
       end
 
-      def log_short_code_verification_attempt!
-        session[:searls_auth_short_code_verification_attempts] ||= 0
-        session[:searls_auth_short_code_verification_attempts] += 1
+      def log_email_otp_verification_attempt!
+        session[:searls_auth_email_otp_verification_attempts] ||= 0
+        session[:searls_auth_email_otp_verification_attempts] += 1
+      end
+
+      def otp_expiry_cutoff
+        minutes = searls_auth_config.email_otp_expiry_minutes.to_i
+        Time.zone.now - (minutes * 60)
+      end
+
+      def otp_generated_at(value)
+        Time.zone.parse(value.to_s)
+      rescue ArgumentError, TypeError
+        nil
       end
 
       def full_redirect_target
@@ -55,14 +69,13 @@ module Searls
       end
 
       def redirect_after_login(user)
-        target = full_redirect_target
-        if target
+        if redirect_path_supplied? && (target = full_redirect_target)
           redirect_with_host_awareness(target)
         else
           redirect_to searls_auth_config.resolve(
-            :default_redirect_path_after_login,
+            :redirect_path_after_login,
             user, params, request, main_app
-          )
+          ) || searls_auth.login_path
         end
       end
 

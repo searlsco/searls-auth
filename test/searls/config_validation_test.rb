@@ -9,8 +9,8 @@ class Searls::ConfigValidationTest < TLDR
       before_password_reset: current.before_password_reset,
       password_reset_token_generator: current.password_reset_token_generator,
       password_reset_token_finder: current.password_reset_token_finder,
-      password_reset_token_clearer: current.password_reset_token_clearer,
-      auto_login_after_password_reset: current.auto_login_after_password_reset
+      auto_login_after_password_reset: current.auto_login_after_password_reset,
+      email_otp_expiry_minutes: current.email_otp_expiry_minutes
     }
     @original_user_constant = Object.const_get(:User) if Object.const_defined?(:User)
   end
@@ -24,8 +24,8 @@ class Searls::ConfigValidationTest < TLDR
       c.before_password_reset = @previous_config[:before_password_reset]
       c.password_reset_token_generator = @previous_config[:password_reset_token_generator]
       c.password_reset_token_finder = @previous_config[:password_reset_token_finder]
-      c.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
       c.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
+      c.email_otp_expiry_minutes = @previous_config.fetch(:email_otp_expiry_minutes, c.email_otp_expiry_minutes)
     end
     restore_user_constant
   end

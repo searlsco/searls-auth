@@ -22,7 +22,6 @@ module Searls
         end
 
         if user.save
-          configuration.password_reset_token_clearer.call(user)
           configuration.after_login_success&.call(user)
           Result.new(success?: true, user: user, errors: [])
         else
