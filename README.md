@@ -198,6 +198,14 @@ Searls::Auth.configure do |config|
 end
 ```
 
+### Account settings
+
+When password authentication is enabled, searls-auth ships a default settings page at `/auth/settings/edit`. It lets a signed-in user set a password for the first time, rotate an existing password (after supplying the current one), and update their email address.
+
+- Link to it with `searls_auth.edit_settings_path`. The template comes from `app/views/searls/auth/settings/edit.html.erb`; override it in your host app or point `config.settings_edit_view` somewhere else.
+- Email edits stay disabled until the user has a password on file. Once a password exists, updating the email calls `config.email_verified_setter` with `nil` to clear any verification timestamp and issues a fresh verification email using whichever email auth methods you have enabled.
+- If you track password state differently, provide your own `config.password_present_predicate`. You can also adjust the new flash messages: `flash_notice_after_settings_update`, `flash_notice_after_settings_email_verification_sent`, `flash_error_after_settings_current_password_missing`, `flash_error_after_settings_current_password_invalid`, and `flash_error_after_settings_email_not_supported`.
+
 Want to tweak copy? Override the flash messages `flash_notice_after_password_reset_email`, `flash_notice_after_password_reset`, `flash_error_after_password_reset_token_invalid`, `flash_error_after_password_reset_password_mismatch`, and `flash_error_after_password_reset_password_blank`, or shadow the mailer templates at `app/views/searls/auth/password_reset_mailer/password_reset.html.erb` and `.text.erb`.
 
 #### Triggering a (re)verification email

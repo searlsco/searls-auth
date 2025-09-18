@@ -20,6 +20,7 @@ module Searls
       :password_reset_enabled, # boolean
       :email_verified_predicate, # proc(user)
       :email_verified_setter, # proc(user, time = Time.current)
+      :password_present_predicate, # proc(user)
       # Controller setup
       :preserve_session_keys_after_logout, # array of symbols
       :max_allowed_short_code_attempts, # integer
@@ -30,6 +31,7 @@ module Searls
       :verify_view, # string
       :password_reset_request_view, # string
       :password_reset_edit_view, # string
+      :settings_edit_view, # string
       :mail_layout, # string
       :mail_login_template_path, # string
       :mail_login_template_name, # string
@@ -68,6 +70,11 @@ module Searls
       :flash_error_after_verify_attempt_exceeds_limit, # string or proc(params)
       :flash_error_after_verify_attempt_incorrect_short_code, # string or proc(params)
       :flash_error_after_verify_attempt_invalid_link, # string or proc(params)
+      :flash_notice_after_settings_update, # string or proc(user, params)
+      :flash_notice_after_settings_email_verification_sent, # string or proc(user, params)
+      :flash_error_after_settings_current_password_missing, # string or proc(params)
+      :flash_error_after_settings_current_password_invalid, # string or proc(params)
+      :flash_error_after_settings_email_not_supported, # string or proc(params)
       :auto_login_after_password_reset, # boolean
       keyword_init: true
     ) do
@@ -86,6 +93,13 @@ module Searls
 
       def password_reset_enabled?
         auth_methods.include?(:password) && !!self[:password_reset_enabled]
+      end
+
+      def password_present?(user)
+        predicate = self[:password_present_predicate]
+        return false if predicate.nil?
+
+        predicate.call(user)
       end
 
       def validate!
@@ -122,6 +136,7 @@ module Searls
           ensure_callable!(:password_reset_token_finder)
           ensure_callable!(:password_reset_token_clearer)
           ensure_callable_optional!(:before_password_reset)
+          ensure_callable_optional!(:password_present_predicate)
           self[:auto_login_after_password_reset] = !!self[:auto_login_after_password_reset]
           self[:password_reset_enabled] = true if self[:password_reset_enabled].nil?
           self[:password_reset_enabled] = !!self[:password_reset_enabled]

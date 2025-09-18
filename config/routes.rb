@@ -11,6 +11,8 @@ Searls::Auth::Engine.routes.draw do
   get "login/verify_token", to: "verifications#create", as: :verify_token
   patch "login/resend_verification", to: "verifications#resend", as: :resend_verification
 
+  resource :settings, only: [:edit, :update]
+
   get "password/reset", to: "requests_password_resets#show", as: :password_reset_request
   post "password/reset", to: "requests_password_resets#create"
   get "password/reset/edit", to: "resets_passwords#show", as: :password_reset_edit

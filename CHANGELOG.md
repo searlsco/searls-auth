@@ -4,6 +4,7 @@
 * Add `before_password_reset` hook to optionally throttle or reject reset requests
 * Add configurable `password_reset_request_view` and `password_reset_edit_view` settings
 * Add `password_reset_enabled` flag to disable the forgot-password link/flow when email delivery is unavailable
+* Add account settings controller/view for password rotation and email changes, plus related configuration hooks
 
 ## [0.2.0] - 2025-09-11
 

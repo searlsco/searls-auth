@@ -8,6 +8,7 @@ require_relative "auth/railtie" if defined?(Rails)
 require_relative "auth/resets_session"
 require_relative "auth/delivers_password_reset"
 require_relative "auth/resets_password"
+require_relative "auth/updates_settings"
 require_relative "auth/version"
 
 module Searls
@@ -34,6 +35,7 @@ module Searls
       password_reset_enabled: true,
       email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },
       email_verified_setter: ->(user, time = Time.current) { user.respond_to?(:email_verified_at) ? user.update!(email_verified_at: time) : true },
+      password_present_predicate: ->(user) { user.respond_to?(:password_digest) && user.password_digest.present? },
       # Controller setup
       preserve_session_keys_after_logout: [],
       max_allowed_short_code_attempts: 10,
@@ -44,6 +46,7 @@ module Searls
       verify_view: "searls/auth/verifications/show",
       password_reset_request_view: "searls/auth/requests_password_resets/show",
       password_reset_edit_view: "searls/auth/resets_passwords/show",
+      settings_edit_view: "searls/auth/settings/edit",
       mail_layout: "searls/auth/layouts/mailer",
       mail_login_template_path: "searls/auth/login_link_mailer",
       mail_login_template_name: "login_link",
@@ -94,6 +97,11 @@ module Searls
       flash_error_after_verify_attempt_exceeds_limit: "Too many verification attempts. Please login again to generate a new code",
       flash_error_after_verify_attempt_incorrect_short_code: "We weren't able to log you in with that code. Try again?",
       flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?",
+      flash_notice_after_settings_update: ->(user, params) { "Settings updated." },
+      flash_notice_after_settings_email_verification_sent: ->(user, params) { "Please check your email to verify the new address." },
+      flash_error_after_settings_current_password_missing: ->(params) { "Enter your current password to make changes." },
+      flash_error_after_settings_current_password_invalid: ->(params) { "That current password doesn't match our records." },
+      flash_error_after_settings_email_not_supported: ->(params) { "Email updates are not supported." },
       auto_login_after_password_reset: true
 
     }.freeze
