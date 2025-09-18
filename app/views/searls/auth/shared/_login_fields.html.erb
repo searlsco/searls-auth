@@ -1,0 +1,11 @@
+<div>
+  <%= f.label :email %>
+  <%= f.email_field :email, required: true, value: params[:email], data: searls_auth_helper.email_field_stimulus_data %>
+</div>
+<% if Searls::Auth.config.auth_methods.include?(:password) %>
+  <div>
+    <%= f.label :password %>
+    <%= f.password_field :password, autocomplete: "current-password" %>
+  </div>
+<% end %>
+

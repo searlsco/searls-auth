@@ -13,7 +13,13 @@ module Searls
 
       # Initialize configuration defaults
       initializer "searls.auth.configure" do |app|
-        # Set up any configuration defaults here
+      end
+
+      config.after_initialize do
+        Searls::Auth::CONFIG.validate!
+      rescue => e
+        warn "[searls-auth] Configuration error: #{e.message}"
+        raise
       end
     end
   end

@@ -93,6 +93,9 @@ Rails.application.config.after_initialize do
     # Defaults:
     config.auth_methods = [:email_link, :email_otp]
 
+    # Email OTPs expire after 30 minutes by default.
+    # config.email_otp_expiry_minutes = 10
+
     # Link-only (no code in emails, no OTP input shown):
     # config.auth_methods = :email_link
 
@@ -103,6 +106,148 @@ end
 ```
 
 One reason you might want to disable e-mail OTP is that it exposes your users to [a pretty easy-to-implement man-in-the-middle attack](https://blog.danielh.cc/blog/passwords).
+
+### Email verification modes
+
+Control whether registration triggers verification emails and whether password login requires a verified email.
+
+```ruby
+# config/initializers/searls_auth.rb
+Rails.application.config.after_initialize do
+  Searls::Auth.configure do |config|
+    # :none (default): No verification emails on registration; password login allowed immediately.
+    # :optional: Send a verification email on registration, but do not block password login.
+    # :required: Send a verification email on registration and block password login until verified.
+    config.email_verification_mode = :none # or :optional, :required
+  end
+end
+```
+
+If you enable the built‑in password login (`config.auth_methods` includes `:password`), we assume your `User` model uses `has_secure_password` (or you can provide custom hooks via `password_verifier` and `password_setter`). Verification status is checked via `email_verified_at` by default and can be customized with `email_verified_predicate`/`email_verified_setter`.
+
+### Password login
+
+Enabling `:password` adds email+password fields to the login and registration flows. Minimal setup looks like this:
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  has_secure_password
+  # If you want passwords to be optional (e.g., mixing passwordless registrations),
+  # use: has_secure_password validations: false
+
+  # uncomment if enabling auth_methods :email_link or :email_otp
+  # generates_token_for :email_auth, expires_in: 30.minutes
+end
+
+# db/migrate/XXXX_add_password_columns.rb
+class AddPasswordColumns < ActiveRecord::Migration[8.0]
+  def change
+    add_column :users, :password_digest, :string
+    add_column :users, :email_verified_at, :datetime
+  end
+end
+
+# config/initializers/searls_auth.rb
+Rails.application.config.after_initialize do
+  Searls::Auth.configure do |config|
+    config.auth_methods = [:password] # or any combination like [:password, :email_link, :email_otp]
+    config.email_verification_mode = :required # :none and :optional supported too
+  end
+end
+```
+
+If you already have legacy password hashing, override `password_verifier`/`password_setter` to wrap it, otherwise we'll use conventional `bcrypt` with `has_secure_password` and `password_digest` comparisons. Likewise, if email verification lives on a different column or association, use `email_verified_predicate`/`email_verified_setter` to adapt.
+
+All successful logins still render through the same flows, so make sure your app handles `session[:user_id]` uniformly regardless of which auth method succeeded.
+
+If a registration request doesn't supply a `redirect_path` parameter, searls-auth now falls back to `config.redirect_path_after_register` when choosing both the post-registration redirect and the link embedded in verification emails. Override that proc to point brand-new users somewhere more purposeful than the default root path.
+
+Likewise, successful logins fall back to `config.redirect_path_after_login` whenever no redirect parameters are supplied. Set it to a dashboard or home screen to spare users from landing on `/`.
+
+### Password reset
+
+When `auth_methods` includes `:password`, the engine renders a "Forgot your password?" link beneath the login form. Clicking it walks through a two-step flow: request a reset email and then choose a new password. To enable it, make sure your `User` model issues a token named `:password_reset`. If your app cannot send email, disable the link entirely with `config.password_reset_enabled = false`.
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  has_secure_password
+
+  # You can skip this if password reset is not enabled:
+  generates_token_for :password_reset, expires_in: 30.minutes
+
+  # For allowing passwordless registrations, use:
+  # has_secure_password validations: false
+end
+```
+
+Adjust the expiry window by updating the `expires_in` value above or by providing a custom generator via configuration.
+
+Need rate limiting or business rules before delivering reset emails? Return `false` or `:halt` from `before_password_reset` to silently skip sending while preserving the standard response.
+
+By default we generate tokens via `generates_token_for`, send mail from `Searls::Auth::PasswordResetMailer`, and log the user in immediately after a successful reset. You can override any piece of that behavior:
+
+```ruby
+Searls::Auth.configure do |config|
+  config.password_reset_token_generator = ->(user) { user.generate_token_for(:password_reset) }
+  config.password_reset_token_finder = ->(token) { PasswordResetTokenStore.lookup(token) }
+  config.auto_login_after_password_reset = false # redirect back to login instead
+  config.mail_password_reset_template_path = "my_auth/password_reset_mailer"
+  config.mail_password_reset_template_name = "email"
+  config.before_password_reset = ->(user, params, controller) do
+    PasswordResetThrottle.allow?(user_id: user&.id, ip: controller.request.remote_ip)
+  end
+  config.password_reset_request_view = "my_auth/password_resets/request"
+  config.password_reset_edit_view = "my_auth/password_resets/edit"
+  config.password_reset_enabled = false if Rails.env.development? # hide link without SMTP
+end
+```
+
+### Account settings
+
+When password authentication is enabled, searls-auth ships a default settings page at `/auth/settings/edit`. It lets a signed-in user set a password for the first time, rotate an existing password (after supplying the current one), and update their email address.
+
+- Link to it with `searls_auth.edit_settings_path`. The template comes from `app/views/searls/auth/settings/edit.html.erb`; override it in your host app or point `config.settings_edit_view` somewhere else.
+- Email edits stay disabled until the user has a password on file. Once a password exists, updating the email calls `config.email_verified_setter` with `nil` to clear any verification timestamp and issues a fresh verification email using whichever email auth methods you have enabled.
+- If you track password state differently, provide your own `config.password_present_predicate`. You can also adjust the new flash messages: `flash_notice_after_settings_update`, `flash_notice_after_settings_email_verification_sent`, `flash_error_after_settings_current_password_missing`, `flash_error_after_settings_current_password_invalid`, and `flash_error_after_settings_email_not_supported`.
+
+Want to tweak copy? Override the flash messages `flash_notice_after_password_reset_email`, `flash_notice_after_password_reset`, `flash_error_after_password_reset_token_invalid`, `flash_error_after_password_reset_password_mismatch`, and `flash_error_after_password_reset_password_blank`, or shadow the mailer templates at `app/views/searls/auth/password_reset_mailer/password_reset.html.erb` and `.text.erb`.
+
+#### Triggering a (re)verification email
+
+Users can request another verification email. The engine exposes a PATCH endpoint and helper you can call from your app:
+
+```erb
+<%# Anywhere in your app %>
+<%= link_to "Resend verification email",
+            searls_auth.resend_verification_path(email: current_user.email),
+            data: { turbo_method: :patch } %>
+```
+
+This uses the same mailer and template as login emails. You can override the template in two ways:
+
+- Configure the template path/name:
+
+```ruby
+Searls::Auth.configure do |config|
+  config.mail_login_template_path = "my_auth/mailer"
+  config.mail_login_template_name = "login_link"
+end
+```
+
+- Or create views that shadow the engine’s defaults at `app/views/searls/auth/login_link_mailer/login_link.html.erb` and `.text.erb` in your app.
+
+### Common configurations
+
+| `auth_methods` | `email_verification_mode` | Behavior |
+| --- | --- | --- |
+| `[:email_link, :email_otp]` (default) | `:none` | Passwordless magic link + email OTP. Registration links go straight to the verify screen. |
+| `[:password]` | `:none` | Classic email/password. No email is sent; verify routes redirect back to login. |
+| `[:password, :email_link, :email_otp]` | `:optional` | Users can log in with either password or email. Registration logs the user in immediately and also emails a verification link. |
+| `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_verification_path`. |
+
+In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain (cross-subdomain redirects still work via `redirect_subdomain`).
 
 ## Use it
 

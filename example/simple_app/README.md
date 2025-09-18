@@ -122,7 +122,7 @@ Since we're starting from a blank app, we need a `users` table and corresponding
 * Your user model is named `User`
 * A user's unique ID is stored in the `id` column and email address in the `email` column (override with `user_finder_by_id` and `user_finder_by_email`, respectively)
 * Optionally, if the user's name is available anywhere, it's accessible via `User#name` (override with `user_name_method`)
-* The `User` model calls [generates_token for](https://api.rubyonrails.org/classes/ActiveRecord/TokenFor/ClassMethods.html#method-i-generates_token_for) to create a token named `email_auth` (override with `token_generator` and `user_finder_by_token`) and an expiry of `30.minutes` (override with `token_expiry_minutes`)
+* The `User` model calls [generates_token for](https://api.rubyonrails.org/classes/ActiveRecord/TokenFor/ClassMethods.html#method-i-generates_token_for) to create a token named `email_auth` (override with `token_generator` and `user_finder_by_token`)
 
 Let's fulfill those default assumptions in this example app. Next I ran `bin/rails g migration create_users` to generate this migration file:
 
@@ -212,6 +212,17 @@ From here, let's do this:
 4. This time, however you authenticated login last time, _try the other one_. In my case, that means copy-pasting the numbers 964522 into my browser (hopefully your numbers are different, I'm not really into crypto)
 5. With any luck, you'll see the members-only content. If not, one of us fucked up
 
-### 10. Carry on
+### 10. Reset a forgotten password
+
+With password login enabled, the default view now includes a "Forgot your password?" link. Clicking it lands on a lightweight form that just asks for an email address.
+
+1. Visit [http://localhost:3000/auth/login](http://localhost:3000/auth/login) and click "Forgot your password?"
+2. Submit `person@example.com`
+3. Open the email that appears in `letter_opener`
+4. Follow the "Reset password" button and choose a brand new password
+
+If you leave the reset form open long enough, the link will expire (30 minutes by default). You can tune expiry, copy, templates, and auto-login behavior through the new configuration knobs documented in `Searls::Auth::DEFAULT_CONFIG`.
+
+### 11. Carry on
 
 From this point on, you should hopefully be able to think about something other than authentication for a while. Remember to check out [auth.rb's DEFAULT_CONFIG](/lib/searls/auth.rb) constant for some guidance on the customization options that searls-auth offers.

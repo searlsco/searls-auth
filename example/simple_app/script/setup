@@ -3,7 +3,7 @@
 set -e
 
 bundle
-bin/rake db:setup
+bin/rails db:prepare
 export PLAYWRIGHT_CLI_VERSION=$(bundle exec ruby -e 'require "playwright"; puts Playwright::COMPATIBLE_PLAYWRIGHT_VERSION.strip')
 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 yarn add -D "playwright@$PLAYWRIGHT_CLI_VERSION"
 yarn run playwright install chromium

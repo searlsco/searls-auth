@@ -1,0 +1,47 @@
+<h1>Account Settings</h1>
+
+<%= form_with scope: :settings, url: searls_auth.settings_path, method: :patch do |f| %>
+  <%= hidden_field_tag :redirect_path, params[:redirect_path] %>
+  <%= hidden_field_tag :redirect_subdomain, params[:redirect_subdomain] %>
+
+  <fieldset>
+    <legend>Email</legend>
+    <% if settings_user.respond_to?(:email) %>
+      <div>
+        <%= f.label :email, "Email address" %>
+        <% if password_on_file? %>
+          <%= f.email_field :email, value: settings_user.email, required: true %>
+          <p class="hint">Changing your email will pause access until you verify the new address.</p>
+        <% else %>
+          <%= f.email_field :email, value: settings_user.email, disabled: true %>
+          <p class="hint">Set a password first to change your email.</p>
+        <% end %>
+      </div>
+    <% end %>
+  </fieldset>
+
+  <fieldset>
+    <legend>Password</legend>
+    <% if password_on_file? %>
+      <div>
+        <%= f.label :current_password, "Current password" %>
+        <%= f.password_field :current_password, autocomplete: "current-password", required: password_on_file? %>
+      </div>
+      <p class="hint">Enter your current password to make changes.</p>
+    <% end %>
+
+    <div>
+      <%= f.label :password, password_on_file? ? "New password" : "Password" %>
+      <%= f.password_field :password, autocomplete: "new-password", required: !password_on_file? %>
+    </div>
+
+    <div>
+      <%= f.label :password_confirmation, "Confirm password" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", required: !password_on_file? %>
+    </div>
+  </fieldset>
+
+  <div>
+    <%= f.submit "Save changes" %>
+  </div>
+<% end %>

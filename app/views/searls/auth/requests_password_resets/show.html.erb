@@ -1,0 +1,17 @@
+<h1>Forgot your password?</h1>
+
+<%= form_with url: searls_auth.password_reset_request_path, method: :post, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
+  <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
+  <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+  <div>
+    <%= f.label :email, "Email address" %>
+    <%= f.email_field :email, required: true, value: params[:email], autocomplete: "email" %>
+  </div>
+  <div>
+    <%= f.submit "Send reset instructions" %>
+  </div>
+<% end %>
+
+<p>
+  Remembered your password? <%= link_to "Log in", searls_auth_helper.login_path %> instead.
+</p>
