@@ -16,7 +16,6 @@ module Searls
       :password_reset_token_generator, # proc(user)
       :password_reset_token_finder, # proc(token)
       :password_reset_token_clearer, # proc(user)
-      :password_reset_expiry_minutes, # integer
       :before_password_reset, # proc(user, params, controller)
       :password_reset_enabled, # boolean
       :email_verified_predicate, # proc(user)
@@ -123,7 +122,6 @@ module Searls
           ensure_callable!(:password_reset_token_finder)
           ensure_callable!(:password_reset_token_clearer)
           ensure_callable_optional!(:before_password_reset)
-          self[:password_reset_expiry_minutes] = self[:password_reset_expiry_minutes].to_i if self[:password_reset_expiry_minutes]
           self[:auto_login_after_password_reset] = !!self[:auto_login_after_password_reset]
           self[:password_reset_enabled] = true if self[:password_reset_enabled].nil?
           self[:password_reset_enabled] = !!self[:password_reset_enabled]

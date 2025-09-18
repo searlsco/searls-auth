@@ -26,4 +26,12 @@ class RegistrationPasswordConfirmationTest < ApplicationSystemTestCase
     assert_current_path searls_auth.register_path
     assert_text "Password confirmation doesn't match Password"
   end
+
+  def test_password_presence_is_required
+    visit searls_auth.register_path
+    fill_in :email, with: "kramer@example.com"
+    click_button "Register"
+    assert_current_path searls_auth.register_path
+    assert_text "Password can't be blank"
+  end
 end

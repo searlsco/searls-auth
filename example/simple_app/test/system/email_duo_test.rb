@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class EmailDuoTest < ApplicationSystemTestCase
   setup do
-    @user = User.create!(email: "jerry@example.com")
+    @user = User.create!(email: "jerry@example.com", password: "sekrit")
   end
 
   def test_default_otp_flow

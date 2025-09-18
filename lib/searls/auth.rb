@@ -30,7 +30,6 @@ module Searls
       password_reset_token_generator: ->(user) { user.generate_token_for(:password_reset) },
       password_reset_token_finder: ->(token) { User.find_by_token_for(:password_reset, token) },
       password_reset_token_clearer: ->(user) {},
-      password_reset_expiry_minutes: 30,
       before_password_reset: nil,
       password_reset_enabled: true,
       email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },

@@ -54,7 +54,6 @@ module Searls
         result = hook.call(user, params, self)
         !(result == false || result == :halt)
       end
-
     end
   end
 end

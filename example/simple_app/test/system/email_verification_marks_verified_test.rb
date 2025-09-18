@@ -8,7 +8,7 @@ class EmailVerificationMarksVerifiedTest < ApplicationSystemTestCase
       c.auth_methods = [:email_link, :email_otp]
       c.email_verification_mode = :required
     end
-    @user = User.create!(email: "puddy@example.com")
+    @user = User.create!(email: "puddy@example.com", password: "sekrit")
     ActionMailer::Base.deliveries.clear
   end
 

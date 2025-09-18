@@ -10,7 +10,6 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
       password_reset_token_generator: current.password_reset_token_generator,
       password_reset_token_finder: current.password_reset_token_finder,
       password_reset_token_clearer: current.password_reset_token_clearer,
-      password_reset_expiry_minutes: current.password_reset_expiry_minutes,
       before_password_reset: current.before_password_reset,
       auto_login_after_password_reset: current.auto_login_after_password_reset
     }
@@ -20,7 +19,6 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
       config.password_reset_token_generator = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_generator]
       config.password_reset_token_finder = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_finder]
       config.password_reset_token_clearer = Searls::Auth::DEFAULT_CONFIG[:password_reset_token_clearer]
-      config.password_reset_expiry_minutes = 30
       config.auto_login_after_password_reset = true
     end
 
@@ -37,7 +35,6 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
       config.password_reset_token_generator = @previous_config[:password_reset_token_generator]
       config.password_reset_token_finder = @previous_config[:password_reset_token_finder]
       config.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
-      config.password_reset_expiry_minutes = @previous_config[:password_reset_expiry_minutes]
       config.before_password_reset = @previous_config[:before_password_reset]
       config.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
     end

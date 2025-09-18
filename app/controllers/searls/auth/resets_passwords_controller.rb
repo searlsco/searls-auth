@@ -66,7 +66,6 @@ module Searls
           )
         end
       end
-
     end
   end
 end

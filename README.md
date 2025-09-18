@@ -129,7 +129,9 @@ Enabling `:password` adds email+password fields to the login and registration fl
 ```ruby
 # app/models/user.rb
 class User < ApplicationRecord
-  has_secure_password validations: false
+  has_secure_password
+  # If you want passwords to be optional (e.g., mixing passwordless registrations),
+  # use: has_secure_password validations: false
 
   # uncomment if enabling auth_methods :email_link or :email_otp
   # generates_token_for :email_auth, expires_in: 30.minutes
@@ -158,13 +160,18 @@ All successful logins still render through the same flows, so make sure your app
 
 ### Password reset
 
-When `auth_methods` includes `:password`, the engine renders a "Forgot your password?" link beneath the login form. Clicking it walks through a two-step flow: request a reset email and then choose a new password. To enable it, make sure your `User` model issues a token named `:password_reset`. If your app cannot send email yet, disable the link entirely with `config.password_reset_enabled = false` until SMTP is wired up.
+When `auth_methods` includes `:password`, the engine renders a "Forgot your password?" link beneath the login form. Clicking it walks through a two-step flow: request a reset email and then choose a new password. To enable it, make sure your `User` model issues a token named `:password_reset`. If your app cannot send email, disable the link entirely with `config.password_reset_enabled = false`.
 
 ```ruby
 # app/models/user.rb
 class User < ApplicationRecord
+  has_secure_password
+
+  # You can skip this if password reset is not enabled:
   generates_token_for :password_reset, expires_in: 30.minutes
-  has_secure_password validations: false
+
+  # For allowing passwordless registrations, use:
+  # has_secure_password validations: false
 end
 ```
 
@@ -176,7 +183,6 @@ By default we generate tokens via `generates_token_for`, send mail from `Searls:
 
 ```ruby
 Searls::Auth.configure do |config|
-  config.password_reset_expiry_minutes = 15
   config.password_reset_token_generator = ->(user) { user.generate_token_for(:password_reset) }
   config.password_reset_token_finder = ->(token) { PasswordResetTokenStore.lookup(token) }
   config.password_reset_token_clearer = ->(user) { PasswordResetTokenStore.revoke(user) }

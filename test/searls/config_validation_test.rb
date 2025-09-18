@@ -10,7 +10,6 @@ class Searls::ConfigValidationTest < TLDR
       password_reset_token_generator: current.password_reset_token_generator,
       password_reset_token_finder: current.password_reset_token_finder,
       password_reset_token_clearer: current.password_reset_token_clearer,
-      password_reset_expiry_minutes: current.password_reset_expiry_minutes,
       auto_login_after_password_reset: current.auto_login_after_password_reset
     }
     @original_user_constant = Object.const_get(:User) if Object.const_defined?(:User)
@@ -26,7 +25,6 @@ class Searls::ConfigValidationTest < TLDR
       c.password_reset_token_generator = @previous_config[:password_reset_token_generator]
       c.password_reset_token_finder = @previous_config[:password_reset_token_finder]
       c.password_reset_token_clearer = @previous_config[:password_reset_token_clearer]
-      c.password_reset_expiry_minutes = @previous_config[:password_reset_expiry_minutes]
       c.auto_login_after_password_reset = @previous_config[:auto_login_after_password_reset]
     end
     restore_user_constant
