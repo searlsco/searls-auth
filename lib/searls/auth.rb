@@ -45,7 +45,6 @@ module Searls
       verify_view: "searls/auth/verifications/show",
       password_reset_request_view: "searls/auth/requests_password_resets/show",
       password_reset_edit_view: "searls/auth/resets_passwords/show",
-      settings_edit_view: "searls/auth/settings/edit",
       mail_layout: "searls/auth/layouts/mailer",
       mail_login_template_path: "searls/auth/login_link_mailer",
       mail_login_template_name: "login_link",
@@ -59,6 +58,9 @@ module Searls
       redirect_path_after_login: ->(user, params, request, routes) {
         # Not every app defines a root_path, so guarding here:
         routes.respond_to?(:root_path) ? routes.root_path : "/"
+      },
+      redirect_path_after_settings_change: ->(user, params, request, routes) {
+        routes.respond_to?(:edit_settings_path) ? routes.edit_settings_path : "/settings"
       },
       # Hook setup
       validate_registration: ->(user, params, errors) { errors },

@@ -30,7 +30,6 @@ module Searls
       :verify_view, # string
       :password_reset_request_view, # string
       :password_reset_edit_view, # string
-      :settings_edit_view, # string
       :mail_layout, # string
       :mail_login_template_path, # string
       :mail_login_template_name, # string
@@ -39,6 +38,7 @@ module Searls
       # Routing setup
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
+      :redirect_path_after_settings_change, # string or proc(user, params, request, routes), post-settings updates redirect here
       # Hook setup
       :validate_registration, # proc(user, params, errors = []), must return an array of error messages where empty means valid
       :after_login_success, # proc(user)

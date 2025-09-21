@@ -22,14 +22,23 @@ module Searls
         @settings_user = result.user
         @password_on_file = nil
 
+        redirect_target = searls_auth_config.resolve(
+          :redirect_path_after_settings_change,
+          settings_user, params, request, searls_auth
+        ) || searls_auth.edit_settings_path
         if result.success?
           flash[:notice] = searls_auth_config.resolve(:flash_notice_after_settings_update, settings_user, params)
           handle_email_verification_if_needed(result)
-          redirect_to searls_auth.edit_settings_path
         else
-          flash.now[:error] = Array(result.errors).compact_blank.first
-          render searls_auth_config.settings_edit_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          # Normally, we would flash.now and run: `render searls_auth_config.settings_edit_view, layout: searls_auth_config.layout, status: :unprocessable_entity`
+          # However, this settings controller/view isn't really meant to be rendered by
+          # end-user applications (since almost every app implements its own /settings UI)
+          # as a result, we offer this update action as a convenience that users can point a form action
+          # to and be redirected back to appropriately. Since they're changing passwords, it's
+          # actually OK for the form fields to not repopulate.
+          flash[:error] = Array(result.errors).compact_blank.first
         end
+        redirect_to redirect_target
       end
 
       private
