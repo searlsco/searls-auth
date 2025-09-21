@@ -25,14 +25,6 @@ module Searls
         routes.register_url(forwardable_params.merge(kwargs))
       end
 
-      def edit_settings_path(**kwargs)
-        routes.edit_settings_path(forwardable_params.merge(kwargs))
-      end
-
-      def settings_path(**kwargs)
-        routes.settings_path(forwardable_params.merge(kwargs))
-      end
-
       def password_reset_request_path(**kwargs)
         routes.password_reset_request_path(forwardable_params.merge(kwargs))
       end
