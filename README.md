@@ -206,11 +206,32 @@ end
 
 ### Account settings
 
-When password authentication is enabled, searls-auth ships a default settings page at `/auth/settings/edit`. It lets a signed-in user set a password for the first time, rotate an existing password (after supplying the current one), and update their email address.
+When password authentication is enabled you can wire any settings UI to the engine by posting to `searls_auth.settings_path`. A simple Rails form looks like:
 
-- Link to it with `searls_auth.edit_settings_path`. The template comes from `app/views/searls/auth/settings/edit.html.erb`; override it in your host app or point `config.settings_edit_view` somewhere else.
-- Email edits stay disabled until the user has a password on file. Once a password exists, updating the email calls `config.email_verified_setter` with `nil` to clear any verification timestamp and issues a fresh verification email using whichever email auth methods you have enabled.
-- If you track password state differently, provide your own `config.password_present_predicate`. You can also adjust the new flash messages: `flash_notice_after_settings_update`, `flash_notice_after_settings_email_verification_sent`, `flash_error_after_settings_current_password_missing`, `flash_error_after_settings_current_password_invalid`, and `flash_error_after_settings_email_not_supported`.
+```erb
+<%= form_with scope: :settings,
+      url: searls_auth.settings_path,
+      method: :patch,
+      local: true do |f| %>
+  <%= f.password_field :current_password %>
+  <%= f.password_field :password %>
+  <%= f.password_field :password_confirmation %>
+  <%= f.email_field :email %>
+  <%= f.submit "Save" %>
+<% end %>
+```
+
+The controller will rotate or set passwords, require the current password when appropriate, and send verification mail when the email address changes (clearing any `email_verified_at` flag via `config.email_verified_setter`).
+
+Configure where users land afterwards by overriding `config.redirect_path_after_settings_change` in your initializer so it points back to your own settings page:
+
+```ruby
+Searls::Auth.configure do |config|
+  config.redirect_path_after_settings_change = ->(_user, _params, _request, routes) { routes.settings_path }
+end
+```
+
+If you track password state differently, provide your own `config.password_present_predicate`. You can also adjust the flash messages: `flash_notice_after_settings_update`, `flash_notice_after_settings_email_verification_sent`, `flash_error_after_settings_current_password_missing`, `flash_error_after_settings_current_password_invalid`, and `flash_error_after_settings_email_not_supported`.
 
 Want to tweak copy? Override the flash messages `flash_notice_after_password_reset_email`, `flash_notice_after_password_reset`, `flash_error_after_password_reset_token_invalid`, `flash_error_after_password_reset_password_mismatch`, and `flash_error_after_password_reset_password_blank`, or shadow the mailer templates at `app/views/searls/auth/password_reset_mailer/password_reset.html.erb` and `.text.erb`.
 

@@ -85,10 +85,6 @@ module Searls
         end
       end
 
-      def auth_methods
-        Array(self[:auth_methods]).map(&:to_sym)
-      end
-
       def password_reset_enabled?
         auth_methods.include?(:password) && !!self[:password_reset_enabled]
       end
