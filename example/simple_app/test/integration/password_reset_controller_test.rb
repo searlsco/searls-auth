@@ -51,7 +51,7 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
     get searls_auth.password_reset_request_path
 
     assert_redirected_to searls_auth.login_path
-    assert flash[:error].present?
+    assert flash[:alert].present?
   end
 
   def test_request_form_redirects_when_password_reset_disabled
@@ -62,7 +62,7 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
     get searls_auth.password_reset_request_path
 
     assert_redirected_to searls_auth.login_path
-    assert flash[:error].present?
+    assert flash[:alert].present?
   end
 
   def test_request_form_renders_successfully_when_enabled
@@ -93,7 +93,7 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
   def test_edit_redirects_when_token_invalid
     get searls_auth.password_reset_edit_path(token: "nope")
     assert_redirected_to searls_auth.password_reset_request_path
-    assert flash[:error].present?
+    assert flash[:alert].present?
   end
 
   def test_edit_renders_when_token_valid

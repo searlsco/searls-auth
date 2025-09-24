@@ -28,7 +28,7 @@ module Searls
           # Normally, we would flash.now and render `settings_view`, but this controller is
           # intended to back forms hosted elsewhere. Redirecting keeps the host UI in control
           # while surfacing validation errors via the session flash.
-          flash[:error] = Array(result.errors).compact_blank.first
+          flash[:alert] = Array(result.errors).compact_blank.first
         end
         redirect_target = searls_auth_config.resolve(
           :redirect_path_after_settings_change,

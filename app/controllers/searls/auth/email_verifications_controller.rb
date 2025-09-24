@@ -17,7 +17,7 @@ module Searls
 
           redirect_after_login(user)
         else
-          flash[:error] = searls_auth_config.resolve(
+          flash[:alert] = searls_auth_config.resolve(
             :flash_error_after_verify_attempt_invalid_link,
             params
           )

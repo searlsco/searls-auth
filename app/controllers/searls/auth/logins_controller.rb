@@ -41,11 +41,11 @@ module Searls
           redirect_after_login(result.user)
         elsif result.email_unverified?
           resend_path = searls_auth.resend_verification_path(email: params[:email], redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain])
-          flash.now[:error] = searls_auth_config.resolve(:flash_error_after_login_attempt_unverified_email, resend_path, params)
+          flash.now[:alert] = searls_auth_config.resolve(:flash_error_after_login_attempt_unverified_email, resend_path, params)
           render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         else
           user = searls_auth_config.user_finder_by_email.call(params[:email])
-          flash.now[:error] = if user.blank?
+          flash.now[:alert] = if user.blank?
             searls_auth_config.resolve(
               :flash_error_after_login_attempt_unknown_email,
               searls_auth.register_path(
@@ -61,7 +61,7 @@ module Searls
           render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         end
       rescue NameError
-        flash.now[:error] = searls_auth_config.resolve(:flash_error_after_password_misconfigured, params)
+        flash.now[:alert] = searls_auth_config.resolve(:flash_error_after_password_misconfigured, params)
         render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
       end
 
@@ -90,7 +90,7 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain]
           )
         else
-          flash.now[:error] = searls_auth_config.resolve(
+          flash.now[:alert] = searls_auth_config.resolve(
             :flash_error_after_login_attempt_unknown_email,
             searls_auth.register_path(
               email: params[:email],

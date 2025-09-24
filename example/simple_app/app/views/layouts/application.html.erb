@@ -24,12 +24,12 @@
 
   <body>
     <% flash.each do |type, message| %>
-      <% next unless [:notice, :error].include?(type.to_sym) && message.present? %>
+      <% next unless [:notice, :alert].include?(type.to_sym) && message.present? %>
       <% messages = Array.wrap(message) %>
       <% style = case type.to_sym
         when :notice
           "background-color:#e0f7fa;color:#006064;border:1px solid #4dd0e1;"
-        when :error
+        when :alert
           "background-color:#ffebee;color:#b71c1c;border:1px solid #ef9a9a;"
         end
       %>

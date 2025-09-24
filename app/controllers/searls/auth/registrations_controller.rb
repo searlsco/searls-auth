@@ -11,7 +11,7 @@ module Searls
         if result.success?
           handle_post_registration(result.user)
         else
-          flash.now[:error] = searls_auth_config.resolve(
+          flash.now[:alert] = searls_auth_config.resolve(
             :flash_error_after_register_attempt,
             result.error_messages,
             searls_auth.login_path(

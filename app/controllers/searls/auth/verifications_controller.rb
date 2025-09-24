@@ -17,14 +17,14 @@ module Searls
       def create
         auth_method = params[:short_code].present? ? :email_otp : :email_link
         if auth_method == :email_otp && !searls_auth_config.auth_methods.include?(:email_otp)
-          flash[:error] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
+          flash[:alert] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
           return redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
           )
         end
         if auth_method == :email_link && !searls_auth_config.auth_methods.include?(:email_link)
-          flash[:error] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
+          flash[:alert] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
           return redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
@@ -60,7 +60,7 @@ module Searls
         elsif auth_method == :email_otp
           if result.exceeded_email_otp_attempt_limit?
             clear_email_otp_from_session!
-            flash[:error] = searls_auth_config.resolve(
+            flash[:alert] = searls_auth_config.resolve(
               :flash_error_after_verify_attempt_exceeds_limit,
               params
             )
@@ -69,14 +69,14 @@ module Searls
               redirect_subdomain: params[:redirect_subdomain]
             )
           else
-            flash[:error] = searls_auth_config.resolve(
+            flash[:alert] = searls_auth_config.resolve(
               :flash_error_after_verify_attempt_incorrect_email_otp,
               params
             )
             render searls_auth_config.verify_view, layout: searls_auth_config.layout, status: :unprocessable_entity
           end
         else
-          flash[:error] = searls_auth_config.resolve(
+          flash[:alert] = searls_auth_config.resolve(
             :flash_error_after_verify_attempt_invalid_link,
             params
           )
@@ -108,7 +108,7 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain]
           )
         else
-          flash[:error] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
+          flash[:alert] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
           redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]

@@ -21,7 +21,7 @@ module Searls
         if result.success?
           handle_successful_reset(result.user)
         else
-          flash.now[:error] = Array(result.errors).first
+          flash.now[:alert] = Array(result.errors).first
           @token = params[:token]
           @user_email = @user.email
           render searls_auth_config.password_reset_edit_view, layout: searls_auth_config.layout, status: :unprocessable_entity
@@ -33,7 +33,7 @@ module Searls
       def ensure_password_reset_enabled
         return if searls_auth_config.password_reset_enabled?
 
-        flash[:error] = searls_auth_config.resolve(:flash_error_after_password_reset_not_enabled, params)
+        flash[:alert] = searls_auth_config.resolve(:flash_error_after_password_reset_not_enabled, params)
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
@@ -45,7 +45,7 @@ module Searls
         @user = searls_auth_config.password_reset_token_finder.call(token)
         return if @user.present?
 
-        flash[:error] = searls_auth_config.resolve(:flash_error_after_password_reset_token_invalid, params)
+        flash[:alert] = searls_auth_config.resolve(:flash_error_after_password_reset_token_invalid, params)
         redirect_to searls_auth.password_reset_request_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
