@@ -36,20 +36,20 @@ module Searls
         if password_registration
           case searls_auth_config.email_verification_mode
           when :required
-            enqueue_verification_email(user, target_path:, target_subdomain:) if email_methods_enabled
+            enqueue_login_verification_email(user, target_path:, target_subdomain:) if email_methods_enabled
             flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
             redirect_to searls_auth.verify_path(
               redirect_path: target_path,
               redirect_subdomain: target_subdomain
             )
           when :optional
-            enqueue_verification_email(user, target_path:, target_subdomain:) if email_methods_enabled
+            enqueue_email_verification_only(user, target_path:, target_subdomain:) if email_methods_enabled
             complete_login_and_redirect(user)
           else # :none
             complete_login_and_redirect(user)
           end
         elsif email_methods_enabled
-          enqueue_verification_email(user, target_path:, target_subdomain:)
+          enqueue_login_verification_email(user, target_path:, target_subdomain:)
           flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
           redirect_to searls_auth.verify_path(
             redirect_path: target_path,
@@ -86,7 +86,7 @@ module Searls
         params[:redirect_path].present? || params[:redirect_subdomain].present?
       end
 
-      def enqueue_verification_email(user, target_path:, target_subdomain:)
+      def enqueue_login_verification_email(user, target_path:, target_subdomain:)
         email_otp = nil
         if searls_auth_config.auth_methods.include?(:email_otp)
           attach_email_otp_to_session!(user)
@@ -97,6 +97,15 @@ module Searls
         EmailsLink.new.email(
           user: user,
           email_otp: email_otp,
+          redirect_path: target_path,
+          redirect_subdomain: target_subdomain
+        )
+      end
+
+      def enqueue_email_verification_only(user, target_path:, target_subdomain:)
+        clear_email_otp_from_session!
+        EmailsVerification.new.email(
+          user: user,
           redirect_path: target_path,
           redirect_subdomain: target_subdomain
         )

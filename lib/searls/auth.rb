@@ -3,6 +3,7 @@ require_relative "auth/config"
 require_relative "auth/generates_full_url"
 require_relative "auth/creates_user" if defined?(Rails)
 require_relative "auth/emails_link"
+require_relative "auth/emails_verification"
 require_relative "auth/engine" if defined?(Rails)
 require_relative "auth/railtie" if defined?(Rails)
 require_relative "auth/resets_session"
@@ -50,6 +51,8 @@ module Searls
       mail_login_template_name: "login_link",
       mail_password_reset_template_path: "searls/auth/password_reset_mailer",
       mail_password_reset_template_name: "password_reset",
+      mail_email_verification_template_path: "searls/auth/email_verification_mailer",
+      mail_email_verification_template_name: "verification_email",
       # Route setup
       redirect_path_after_register: ->(user, params, request, routes) {
         # Not every app defines a root_path, so guarding here:
@@ -92,6 +95,7 @@ module Searls
       flash_notice_after_logout: "You've been logged out",
       flash_notice_after_verification: "You are now logged in",
       flash_notice_after_verification_email_resent: "Verification email sent",
+      flash_notice_after_email_verified: "Email verified",
       flash_notice_after_password_reset_email: ->(params) { "If that email exists, password reset instructions are on the way." },
       flash_notice_after_password_reset: ->(user, params) { "Your password has been reset." },
       flash_error_after_verify_attempt_exceeds_limit: "Too many verification attempts. Please login again to generate a new code",

@@ -35,6 +35,8 @@ module Searls
       :mail_login_template_name, # string
       :mail_password_reset_template_path, # string
       :mail_password_reset_template_name, # string
+      :mail_email_verification_template_path, # string
+      :mail_email_verification_template_name, # string
       # Routing setup
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
@@ -63,6 +65,7 @@ module Searls
       :flash_notice_after_logout, # string or proc(params)
       :flash_notice_after_verification, # string or proc(user, params)
       :flash_notice_after_verification_email_resent, # string or proc(params)
+      :flash_notice_after_email_verified, # string or proc(user, params)
       :flash_notice_after_password_reset_email, # string or proc(params)
       :flash_notice_after_password_reset, # string or proc(user, params)
       :flash_error_after_verify_attempt_exceeds_limit, # string or proc(params)

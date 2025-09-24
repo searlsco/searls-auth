@@ -85,19 +85,12 @@ module Searls
         email_methods_enabled = (searls_auth_config.auth_methods & [:email_link, :email_otp]).any?
         return unless email_methods_enabled
 
-        email_otp = nil
-        if searls_auth_config.auth_methods.include?(:email_otp)
-          attach_email_otp_to_session!(settings_user)
-          email_otp = session[:searls_auth_email_otp]
-        else
-          clear_email_otp_from_session!
-        end
+        clear_email_otp_from_session!
 
-        EmailsLink.new.email(
+        EmailsVerification.new.email(
           user: settings_user,
           redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain],
-          email_otp: email_otp
+          redirect_subdomain: params[:redirect_subdomain]
         )
 
         current_notice = Array(flash[:notice]).compact_blank
