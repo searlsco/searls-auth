@@ -42,9 +42,7 @@ module Searls
 
       def deliverable_user?(user)
         return false if user.blank?
-        return true unless user.respond_to?(:password_digest)
-
-        user.password_digest.present?
+        searls_auth_config.password_present?(user)
       end
 
       def proceed_with_password_reset_request?(user)
