@@ -5,22 +5,6 @@
   <%= hidden_field_tag :redirect_subdomain, params[:redirect_subdomain] %>
 
   <fieldset>
-    <legend>Email</legend>
-    <% if settings_user.respond_to?(:email) %>
-      <div>
-        <%= f.label :email, "Email address" %>
-        <% if password_on_file? %>
-          <%= f.email_field :email, value: settings_user.email, required: true %>
-          <p class="hint">Changing your email will pause access until you verify the new address.</p>
-        <% else %>
-          <%= f.email_field :email, value: settings_user.email, disabled: true %>
-          <p class="hint">Set a password first to change your email.</p>
-        <% end %>
-      </div>
-    <% end %>
-  </fieldset>
-
-  <fieldset>
     <legend>Password</legend>
     <% if password_on_file? %>
       <div>

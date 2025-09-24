@@ -72,10 +72,8 @@ module Searls
       :flash_error_after_verify_attempt_incorrect_email_otp, # string or proc(params)
       :flash_error_after_verify_attempt_invalid_link, # string or proc(params)
       :flash_notice_after_settings_update, # string or proc(user, params)
-      :flash_notice_after_settings_email_verification_sent, # string or proc(user, params)
       :flash_error_after_settings_current_password_missing, # string or proc(params)
       :flash_error_after_settings_current_password_invalid, # string or proc(params)
-      :flash_error_after_settings_email_not_supported, # string or proc(params)
       :auto_login_after_password_reset, # boolean
       keyword_init: true
     ) do

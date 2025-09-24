@@ -24,7 +24,6 @@ module Searls
 
         if result.success?
           flash[:notice] = searls_auth_config.resolve(:flash_notice_after_settings_update, settings_user, params)
-          handle_email_verification_if_needed(result)
         else
           # Normally, we would flash.now and render `settings_view`, but this controller is
           # intended to back forms hosted elsewhere. Redirecting keeps the host UI in control
@@ -74,28 +73,8 @@ module Searls
 
       def settings_params
         permitted = [:password, :password_confirmation, :current_password]
-        permitted << :email if password_on_file?
 
         params.fetch(:settings, ActionController::Parameters.new).permit(permitted)
-      end
-
-      def handle_email_verification_if_needed(result)
-        return unless result.email_changed?
-
-        email_methods_enabled = (searls_auth_config.auth_methods & [:email_link, :email_otp]).any?
-        return unless email_methods_enabled
-
-        clear_email_otp_from_session!
-
-        EmailsVerification.new.email(
-          user: settings_user,
-          redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain]
-        )
-
-        current_notice = Array(flash[:notice]).compact_blank
-        current_notice << searls_auth_config.resolve(:flash_notice_after_settings_email_verification_sent, settings_user, params)
-        flash[:notice] = current_notice.join(" ")
       end
     end
   end

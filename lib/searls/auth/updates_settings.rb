@@ -6,29 +6,21 @@ module Searls
         :errors,
         :user,
         :password_changed?,
-        :email_changed?,
         keyword_init: true
-      ) do
-        def verification_required?
-          !!self[:email_changed?]
-        end
-      end
+      )
 
       def initialize(user:, params:, configuration:)
         @user = user
         @params = params || {}
         @config = configuration
-        @original_email = user_email
         @errors = []
         @password_changed = false
-        @email_changed = false
       end
 
       def update
         enforce_current_password_requirement
 
         handle_password_change if errors.empty?
-        handle_email_change if errors.empty?
 
         return failure_result unless errors.empty?
 
@@ -38,8 +30,7 @@ module Searls
               success?: true,
               user: user,
               errors: [],
-              password_changed?: @password_changed,
-              email_changed?: @email_changed
+              password_changed?: @password_changed
             )
           else
             Result.new(
@@ -49,17 +40,17 @@ module Searls
             )
           end
         else
-          Result.new(success?: true, user: user, errors: [], password_changed?: false, email_changed?: false)
+          Result.new(success?: true, user: user, errors: [], password_changed?: false)
         end
       end
 
       private
 
-      attr_reader :user, :params, :config, :errors, :original_email
+      attr_reader :user, :params, :config, :errors
 
       def enforce_current_password_requirement
         return unless password_present?
-        return unless password_change_requested? || email_change_requested?
+        return unless password_change_requested?
 
         if current_password.blank?
           errors << array_wrap(config.resolve(:flash_error_after_settings_current_password_missing, {}))
@@ -103,59 +94,12 @@ module Searls
         @password_changed = true
       end
 
-      def handle_email_change
-        return unless email_change_requested?
-
-        unless user.respond_to?(:email=)
-          errors << array_wrap(config.resolve(:flash_error_after_settings_email_not_supported, {}))
-          errors.flatten!
-          return
-        end
-
-        user.email = new_email
-        clear_email_verification
-        @email_changed = true
-      end
-
       def password_present?
         config.password_present?(user)
       end
 
       def password_change_requested?
         new_password.present? || new_password_confirmation.present?
-      end
-
-      def email_change_requested?
-        return false unless new_email_provided?
-        return false unless password_present?
-
-        new_email != original_email
-      end
-
-      def new_email_provided?
-        raw = param(:email)
-        @new_email = raw.is_a?(String) ? raw.strip : raw
-        @new_email.present?
-      end
-
-      def new_email
-        @new_email ||= begin
-          raw = param(:email)
-          raw.is_a?(String) ? raw.strip : raw
-        end
-      end
-
-      def clear_email_verification
-        setter = config.email_verified_setter
-        return if setter.nil?
-
-        begin
-          setter.call(user, nil)
-        rescue ArgumentError => e
-          raise unless e.message.include?("wrong number of arguments")
-
-          setter.call(user)
-        end
       end
 
       def current_password
@@ -174,14 +118,8 @@ module Searls
         params[key] || params[key.to_s]
       end
 
-      def user_email
-        if user.respond_to?(:email)
-          user.email
-        end
-      end
-
       def changes_applied?
-        @password_changed || @email_changed
+        @password_changed
       end
 
       def failure_result

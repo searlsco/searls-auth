@@ -102,10 +102,8 @@ module Searls
       flash_error_after_verify_attempt_incorrect_email_otp: "We weren't able to log you in with that code. Try again?",
       flash_error_after_verify_attempt_invalid_link: "We weren't able to log you in with that link. Try again?",
       flash_notice_after_settings_update: ->(user, params) { "Settings updated." },
-      flash_notice_after_settings_email_verification_sent: ->(user, params) { "Please check your email to verify the new address." },
       flash_error_after_settings_current_password_missing: ->(params) { "Enter your current password to make changes." },
       flash_error_after_settings_current_password_invalid: ->(params) { "That current password doesn't match our records." },
-      flash_error_after_settings_email_not_supported: ->(params) { "Email updates are not supported." },
       auto_login_after_password_reset: true
 
     }.freeze
