@@ -21,7 +21,7 @@ module Searls
             ),
             params
           )
-          render searls_auth_config.register_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          render searls_auth_config.register_view, layout: searls_auth_config.layout, status: :unprocessable_content
         end
       end
 
@@ -62,14 +62,12 @@ module Searls
         session[:user_id] = user.id
         session[:has_logged_in_before] = true
         flash[:notice] = searls_auth_config.resolve(:flash_notice_after_login, user, params)
-        if redirect_params_supplied?
-          if (target = full_redirect_target)
-            return redirect_with_host_awareness(target)
-          end
+        if redirect_params_supplied? && (target = full_redirect_target)
+          redirect_with_host_awareness(target)
+        else
+          fallback = searls_auth_config.resolve(:redirect_path_after_login, user, params, request, main_app)
+          redirect_to(fallback || searls_auth.login_path)
         end
-
-        fallback = searls_auth_config.resolve(:redirect_path_after_login, user, params, request, main_app)
-        redirect_to(fallback || searls_auth.login_path)
       end
 
       def registration_redirect_destination(user)

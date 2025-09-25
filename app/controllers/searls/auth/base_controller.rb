@@ -1,5 +1,4 @@
 require "securerandom"
-require "uri"
 
 module Searls
   module Auth
@@ -22,12 +21,9 @@ module Searls
       end
 
       def reset_expired_email_otp
-        generated_at = session[:searls_auth_email_otp_generated_at]
-        if generated_at.present?
-          parsed = otp_generated_at(generated_at)
-          if parsed && parsed < otp_expiry_cutoff
-            clear_email_otp_from_session!
-          end
+        if (generated_at = session[:searls_auth_email_otp_generated_at]).present? &&
+            Time.zone.parse(generated_at) < searls_auth_config.email_otp_expiry_minutes.minutes.ago
+          clear_email_otp_from_session!
         end
       end
 
@@ -41,17 +37,6 @@ module Searls
       def log_email_otp_verification_attempt!
         session[:searls_auth_email_otp_verification_attempts] ||= 0
         session[:searls_auth_email_otp_verification_attempts] += 1
-      end
-
-      def otp_expiry_cutoff
-        minutes = searls_auth_config.email_otp_expiry_minutes.to_i
-        Time.zone.now - (minutes * 60)
-      end
-
-      def otp_generated_at(value)
-        Time.zone.parse(value.to_s)
-      rescue ArgumentError, TypeError
-        nil
       end
 
       def full_redirect_target

@@ -56,7 +56,7 @@ module Searls
         elsif result.email_unverified?
           resend_path = searls_auth.resend_verification_path(email: params[:email], redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain])
           flash.now[:alert] = searls_auth_config.resolve(:flash_error_after_login_attempt_unverified_email, resend_path, params)
-          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
         else
           user = searls_auth_config.user_finder_by_email.call(params[:email])
           flash.now[:alert] = if user.blank?
@@ -72,11 +72,11 @@ module Searls
           else
             searls_auth_config.resolve(:flash_error_after_login_attempt_invalid_password, params)
           end
-          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
         end
       rescue NameError
         flash.now[:alert] = searls_auth_config.resolve(:flash_error_after_password_misconfigured, params)
-        render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+        render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
       end
 
       def handle_email_login
@@ -113,7 +113,7 @@ module Searls
             ),
             params
           )
-          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
         end
       end
 

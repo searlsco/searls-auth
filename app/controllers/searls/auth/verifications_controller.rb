@@ -73,7 +73,7 @@ module Searls
               :flash_error_after_verify_attempt_incorrect_email_otp,
               params
             )
-            render searls_auth_config.verify_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+            render searls_auth_config.verify_view, layout: searls_auth_config.layout, status: :unprocessable_content
           end
         else
           flash[:alert] = searls_auth_config.resolve(
@@ -97,7 +97,7 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain]
           )
         elsif searls_auth_config.email_verification_mode.to_sym == :none
-          render plain: searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params), status: :unprocessable_entity
+          render plain: searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params), status: :unprocessable_content
         else
           clear_email_otp_from_session!
           EmailsVerification.new.email(

@@ -24,7 +24,7 @@ module Searls
           flash.now[:alert] = Array(result.errors).first
           @token = params[:token]
           @user_email = @user.email
-          render searls_auth_config.password_reset_edit_view, layout: searls_auth_config.layout, status: :unprocessable_entity
+          render searls_auth_config.password_reset_edit_view, layout: searls_auth_config.layout, status: :unprocessable_content
         end
       end
 

@@ -127,7 +127,7 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
       password_confirmation: "beta"
     }
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     assert_includes response.body, Searls::Auth.config.resolve(:flash_error_after_password_reset_password_mismatch, {})
     assert @user.reload.authenticate("sekrit")
   end
