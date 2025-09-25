@@ -79,11 +79,14 @@ module Searls
       flash_error_after_register_attempt: ->(error_messages, login_path, params) { error_messages },
       flash_notice_after_login_attempt: ->(user, params) { "Login details sent to #{params[:email]}" },
       flash_error_after_login_attempt_unknown_email: ->(register_path, params) {
-        "We don't know that email. <a href=\"#{register_path}\">Sign up</a> instead?".html_safe
+        "We don't know that email. <a href=\"#{register_path}\">Sign up</a> instead?"
       },
       flash_error_after_login_attempt_invalid_password: ->(params) { "Invalid password. Try again?" },
       flash_error_after_login_attempt_unverified_email: ->(resend_path, params) {
-        "You must verify your email before logging in. <a href=\"#{resend_path}\" data-turbo-method=\"patch\">Resend verification email</a>".html_safe
+        "You must verify your email before logging in. <a href=\"#{resend_path}\" data-turbo-method=\"patch\">Resend verification email</a>"
+      },
+      flash_notice_after_login_with_unverified_email: ->(resend_path, params) {
+        "You are now logged in, but your email is still unverified. <a href=\"#{resend_path}\" data-turbo-method=\"patch\">Resend verification email</a>"
       },
       flash_error_after_password_misconfigured: ->(params) {
         "Password authentication misconfigured. Add `bcrypt` to your Gemfile or override password hooks."
@@ -93,7 +96,7 @@ module Searls
       flash_error_after_password_reset_password_blank: ->(params) { "Password can't be blank. Try again?" },
       flash_error_after_password_reset_not_enabled: ->(params) { "Password resets are unavailable." },
       flash_notice_after_logout: "You've been logged out",
-      flash_notice_after_verification: "You are now logged in",
+      flash_notice_after_login: "You are now logged in",
       flash_notice_after_verification_email_resent: "Verification email sent",
       flash_notice_after_email_verified: "Email verified",
       flash_notice_after_password_reset_email: ->(params) { "If that email exists, password reset instructions are on the way." },

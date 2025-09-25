@@ -34,10 +34,24 @@ module Searls
         if result.success?
           session[:user_id] = result.user.id
           session[:has_logged_in_before] = true
-          flash[:notice] = searls_auth_config.resolve(
-            :flash_notice_after_verification,
-            result.user, params
-          )
+
+          flash[:notice] = if email_verification_enabled? && !searls_auth_config.email_verified_predicate.call(result.user)
+            resend_path = searls_auth.resend_verification_path(
+              email: params[:email],
+              redirect_path: params[:redirect_path],
+              redirect_subdomain: params[:redirect_subdomain]
+            )
+            searls_auth_config.resolve(
+              :flash_notice_after_login_with_unverified_email,
+              resend_path,
+              params
+            )
+          else
+            searls_auth_config.resolve(
+              :flash_notice_after_login,
+              result.user, params
+            )
+          end
           redirect_after_login(result.user)
         elsif result.email_unverified?
           resend_path = searls_auth.resend_verification_path(email: params[:email], redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain])
@@ -101,6 +115,10 @@ module Searls
           )
           render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_entity
         end
+      end
+
+      def email_verification_enabled?
+        searls_auth_config.email_verification_mode.to_sym != :none
       end
     end
   end

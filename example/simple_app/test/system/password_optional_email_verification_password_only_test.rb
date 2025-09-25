@@ -2,14 +2,14 @@ require "application_system_test_case"
 require "cgi"
 require "uri"
 
-class PasswordOptionalEmailVerificationTest < ApplicationSystemTestCase
+class PasswordOptionalEmailVerificationPasswordOnlyTest < ApplicationSystemTestCase
   setup do
     @prev_methods = Searls::Auth.config.auth_methods
     @prev_mode = Searls::Auth.config.email_verification_mode
     @prev_flash = Searls::Auth.config.flash_notice_after_email_verified
 
     Searls::Auth.configure do |config|
-      config.auth_methods = [:password, :email_link, :email_otp]
+      config.auth_methods = [:password]
       config.email_verification_mode = :optional
       config.flash_notice_after_email_verified = "Email verified"
     end
@@ -23,9 +23,9 @@ class PasswordOptionalEmailVerificationTest < ApplicationSystemTestCase
     end
   end
 
-  def test_registration_sends_email_verification_instead_of_login_link
+  def test_registration_sends_verification_email_even_without_email_login
     visit searls_auth.register_path
-    fill_in :email, with: "optionally@example.com"
+    fill_in :email, with: "password-only@example.com"
     fill_in :password, with: "sekrit"
     fill_in :password_confirmation, with: "sekrit"
     click_button "Register"
@@ -44,7 +44,7 @@ class PasswordOptionalEmailVerificationTest < ApplicationSystemTestCase
     visit verification_path
 
     assert_text "Email verified"
-    assert User.find_by(email: "optionally@example.com").email_verified_at.present?
+    assert User.find_by(email: "password-only@example.com").email_verified_at.present?
   end
 
   private

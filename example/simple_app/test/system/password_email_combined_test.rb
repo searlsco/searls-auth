@@ -9,7 +9,6 @@ class PasswordEmailCombinedTest < ApplicationSystemTestCase
       c.email_verification_mode = :optional
     end
     @user = User.create!(email: "george@example.com", password: "sekrit")
-    ActionMailer::Base.deliveries.clear
   end
 
   teardown do
@@ -24,7 +23,7 @@ class PasswordEmailCombinedTest < ApplicationSystemTestCase
     fill_in :email, with: @user.email
     fill_in :password, with: "sekrit"
     click_button "Log in"
-    assert_text "You are now logged in"
+    assert_text "You are now logged in, but your email is still unverified. Resend verification email"
     assert_equal 0, ActionMailer::Base.deliveries.size
   end
 

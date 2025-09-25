@@ -48,7 +48,7 @@ module Searls
           session[:user_id] = result.user.id
           session[:has_logged_in_before] = true
           flash[:notice] = searls_auth_config.resolve(
-            :flash_notice_after_verification,
+            :flash_notice_after_login,
             result.user, params
           )
           if (target = full_redirect_target)
@@ -89,27 +89,24 @@ module Searls
 
       def resend
         user = searls_auth_config.user_finder_by_email.call(params[:email])
-        if user.present? && (searls_auth_config.auth_methods & [:email_link, :email_otp]).any?
-          if searls_auth_config.auth_methods.include?(:email_otp)
-            attach_email_otp_to_session!(user)
-          else
-            clear_email_otp_from_session!
-          end
 
-          EmailsLink.new.email(
-            user: user,
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain],
-            email_otp: session[:searls_auth_email_otp]
-          )
-          flash[:notice] = searls_auth_config.resolve(:flash_notice_after_verification_email_resent, params)
-          redirect_to searls_auth.verify_path(
+        if user.blank?
+          flash[:alert] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
+          redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
           )
+        elsif searls_auth_config.email_verification_mode.to_sym == :none
+          render plain: searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params), status: :unprocessable_entity
         else
-          flash[:alert] = searls_auth_config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
-          redirect_to searls_auth.login_path(
+          clear_email_otp_from_session!
+          EmailsVerification.new.email(
+            user: user,
+            redirect_path: params[:redirect_path],
+            redirect_subdomain: params[:redirect_subdomain]
+          )
+          flash[:notice] = searls_auth_config.resolve(:flash_notice_after_verification_email_resent, params)
+          redirect_to searls_auth.verify_path(
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
           )

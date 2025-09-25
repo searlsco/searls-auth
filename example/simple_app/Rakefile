@@ -6,5 +6,4 @@ require "standard/rake"
 
 Rails.application.load_tasks
 
-ENV["CI"] = "true"
 task default: ["test", "test:system", "standard:fix"]

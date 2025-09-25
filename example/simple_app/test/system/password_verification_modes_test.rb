@@ -1,4 +1,6 @@
 require "application_system_test_case"
+require "cgi"
+require "uri"
 
 class PasswordVerificationModesTest < ApplicationSystemTestCase
   setup do
@@ -9,7 +11,6 @@ class PasswordVerificationModesTest < ApplicationSystemTestCase
       c.email_verification_mode = :required
     end
     @user = User.create!(email: "kramer@example.com", password: "sekrit")
-    ActionMailer::Base.deliveries.clear
   end
 
   teardown do
@@ -30,9 +31,20 @@ class PasswordVerificationModesTest < ApplicationSystemTestCase
     assert_text "Verification email sent"
 
     mail = ActionMailer::Base.deliveries.last
-    body = mail.text_part&.decoded || mail.body.encoded
-    token = body.match(/token=([^&\s]+)/)[1]
-    visit searls_auth.verify_token_path(token: token)
-    assert_text "You are now logged in"
+    body = mail.html_part&.body&.decoded || mail.body.decoded
+    verification_path = extract_verification_path(body)
+    visit verification_path
+    assert_text "Email verified"
+    assert_text "It's member time"
+  end
+
+  private
+
+  def extract_verification_path(body)
+    match = body.match(/http[^"\s]+email\/verify[^"\s]*/)
+    raise "verification link missing" unless match
+
+    uri = URI.parse(CGI.unescapeHTML(match[0]))
+    uri.request_uri
   end
 end

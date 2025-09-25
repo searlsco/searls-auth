@@ -15,6 +15,10 @@ module Searls
             params
           )
 
+          searls_auth_config.after_login_success&.call(user)
+          session[:user_id] = user.id
+          session[:has_logged_in_before] = true
+
           redirect_after_login(user)
         else
           flash[:alert] = searls_auth_config.resolve(

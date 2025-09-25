@@ -9,7 +9,6 @@ class PasswordOnlyTest < ApplicationSystemTestCase
       c.email_verification_mode = :none
     end
     @user = User.create!(email: "elaine@example.com", password: "sekrit")
-    ActionMailer::Base.deliveries.clear
   end
 
   teardown do

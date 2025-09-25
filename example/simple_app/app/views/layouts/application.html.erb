@@ -25,7 +25,7 @@
   <body>
     <% flash.each do |type, message| %>
       <% next unless [:notice, :alert].include?(type.to_sym) && message.present? %>
-      <% messages = Array.wrap(message) %>
+      <% messages = Array.wrap(message).map { |s| sanitize(s, tags: %w[em strong br a], attributes: %w[href]) } %>
       <% style = case type.to_sym
         when :notice
           "background-color:#e0f7fa;color:#006064;border:1px solid #4dd0e1;"

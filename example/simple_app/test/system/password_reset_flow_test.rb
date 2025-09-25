@@ -10,7 +10,6 @@ class PasswordResetFlowTest < ApplicationSystemTestCase
       config.auth_methods = [:password]
       config.auto_login_after_password_reset = true
     end
-    ActionMailer::Base.deliveries.clear
     @user = User.create!(email: "flow@example.com", password: "sekrit")
   end
 
@@ -19,7 +18,6 @@ class PasswordResetFlowTest < ApplicationSystemTestCase
       config.auth_methods = @prev_methods
       config.auto_login_after_password_reset = @prev_auto_login
     end
-    ActionMailer::Base.deliveries.clear
   end
 
   def test_full_password_reset_flow

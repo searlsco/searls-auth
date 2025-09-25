@@ -1,6 +1,7 @@
 ## [Unreleased]
 
-* **BREAKING:** Rename `default_redirect_path_after_register` to  `redirect_path_after_register`
+* **BREAKING:** Rename `default_redirect_path_after_register` to `redirect_path_after_register`
+* **BREAKING:** Rename `flash_notice_after_verification` to `flash_notice_after_login`
 * Add password reset flow with default controllers, mailer, views, and configuration hooks
 * Add `before_password_reset` hook to optionally throttle or reject reset requests
 * Add configurable `password_reset_request_view` and `password_reset_edit_view` settings

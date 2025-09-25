@@ -18,5 +18,6 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   teardown do
     ActiveJob::Base.queue_adapter = :test
+    ActionMailer::Base.deliveries.clear
   end
 end

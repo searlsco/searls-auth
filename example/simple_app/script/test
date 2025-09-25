@@ -2,4 +2,4 @@
 
 set -e
 
-bin/rake
+env CI=true bin/rake

@@ -30,22 +30,20 @@ module Searls
       def handle_post_registration(user)
         password_registration = searls_auth_config.auth_methods.include?(:password) && params[:password].present?
         email_methods_enabled = (searls_auth_config.auth_methods & [:email_link, :email_otp]).any?
+        verification_enabled = searls_auth_config.email_verification_mode.to_sym != :none
 
         target_path, target_subdomain = registration_redirect_destination(user)
 
         if password_registration
-          case searls_auth_config.email_verification_mode
-          when :required
-            enqueue_login_verification_email(user, target_path:, target_subdomain:) if email_methods_enabled
+          deliver_email_verification(user, target_path:, target_subdomain:) if verification_enabled
+
+          if searls_auth_config.email_verification_mode.to_sym == :required
             flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
             redirect_to searls_auth.verify_path(
               redirect_path: target_path,
               redirect_subdomain: target_subdomain
             )
-          when :optional
-            enqueue_email_verification_only(user, target_path:, target_subdomain:) if email_methods_enabled
-            complete_login_and_redirect(user)
-          else # :none
+          else
             complete_login_and_redirect(user)
           end
         elsif email_methods_enabled
@@ -63,7 +61,7 @@ module Searls
       def complete_login_and_redirect(user)
         session[:user_id] = user.id
         session[:has_logged_in_before] = true
-        flash[:notice] = searls_auth_config.resolve(:flash_notice_after_verification, user, params)
+        flash[:notice] = searls_auth_config.resolve(:flash_notice_after_login, user, params)
         if redirect_params_supplied?
           if (target = full_redirect_target)
             return redirect_with_host_awareness(target)
@@ -102,8 +100,7 @@ module Searls
         )
       end
 
-      def enqueue_email_verification_only(user, target_path:, target_subdomain:)
-        clear_email_otp_from_session!
+      def deliver_email_verification(user, target_path:, target_subdomain:)
         EmailsVerification.new.email(
           user: user,
           redirect_path: target_path,

@@ -116,7 +116,7 @@ Control whether registration triggers verification emails and whether password l
 Rails.application.config.after_initialize do
   Searls::Auth.configure do |config|
     # :none (default): No verification emails on registration; password login allowed immediately.
-    # :optional: Send a verification email on registration, but do not block password login.
+    # :optional: Send a verification email on registration, allow password login, but remind users until verified.
     # :required: Send a verification email on registration and block password login until verified.
     config.email_verification_mode = :none # or :optional, :required
   end
@@ -133,8 +133,6 @@ Enabling `:password` adds email+password fields to the login and registration fl
 # app/models/user.rb
 class User < ApplicationRecord
   has_secure_password
-  # If you want passwords to be optional (e.g., mixing passwordless registrations),
-  # use: has_secure_password validations: false
 
   # uncomment if enabling auth_methods :email_link or :email_otp
   # generates_token_for :email_auth, expires_in: 30.minutes
@@ -176,9 +174,6 @@ class User < ApplicationRecord
 
   # You can skip this if password reset is not enabled:
   generates_token_for :password_reset, expires_in: 30.minutes
-
-  # For allowing passwordless registrations, use:
-  # has_secure_password validations: false
 end
 ```
 

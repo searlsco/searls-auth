@@ -8,7 +8,6 @@ class PasswordRequiredModeRegistrationTest < ApplicationSystemTestCase
       c.auth_methods = [:password, :email_link]
       c.email_verification_mode = :required
     end
-    ActionMailer::Base.deliveries.clear
   end
 
   teardown do
@@ -26,5 +25,6 @@ class PasswordRequiredModeRegistrationTest < ApplicationSystemTestCase
     click_button "Register"
     assert_text "Check your email!"
     assert_equal 1, ActionMailer::Base.deliveries.size
+    assert_equal "Verify your email", ActionMailer::Base.deliveries.first.subject
   end
 end

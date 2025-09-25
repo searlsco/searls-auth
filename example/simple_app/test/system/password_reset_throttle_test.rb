@@ -19,8 +19,6 @@ class PasswordResetThrottleTest < ApplicationSystemTestCase
     end
 
     @hook_counter = hook_counter
-
-    ActionMailer::Base.deliveries.clear
     @user = User.create!(email: "throttle@example.com", password: "sekrit")
   end
 
@@ -30,7 +28,6 @@ class PasswordResetThrottleTest < ApplicationSystemTestCase
       config.before_password_reset = @prev_hook
       config.auto_login_after_password_reset = @prev_auto_login
     end
-    ActionMailer::Base.deliveries.clear
   end
 
   def test_hook_blocks_second_request

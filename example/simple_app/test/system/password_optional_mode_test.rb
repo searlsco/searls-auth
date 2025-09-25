@@ -8,7 +8,6 @@ class PasswordOptionalModeTest < ApplicationSystemTestCase
       c.auth_methods = [:password, :email_link]
       c.email_verification_mode = :optional
     end
-    ActionMailer::Base.deliveries.clear
   end
 
   teardown do
@@ -34,6 +33,14 @@ class PasswordOptionalModeTest < ApplicationSystemTestCase
     fill_in :email, with: user.email
     fill_in :password, with: "sekrit"
     click_button "Log in"
-    assert_text "You are now logged in"
+    assert_text "You are now logged in, but your email is still unverified. Resend verification email"
+    assert_difference -> { ActionMailer::Base.deliveries.size }, +1 do
+      click_link "Resend verification email"
+      assert_text "Verification email sent"
+    end
+
+    assert_current_path searls_auth.verify_path
+    mail = ActionMailer::Base.deliveries.last
+    assert_equal "Verify your email", mail.subject
   end
 end
