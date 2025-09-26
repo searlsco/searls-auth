@@ -39,9 +39,7 @@ module Searls
       end
 
       def redirect_with_host_awareness(target)
-        options = {}
-        options[:allow_other_host] = true if target&.start_with?("http://", "https://")
-        redirect_to target, **options
+        redirect_to target, allow_other_host: target&.start_with?("http://", "https://")
       end
 
       def redirect_after_login(user)
@@ -54,8 +52,6 @@ module Searls
           ) || searls_auth.login_path
         end
       end
-
-      private
     end
   end
 end

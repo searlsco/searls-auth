@@ -43,11 +43,7 @@ module Searls
             Searls::Auth.config.email_verified_setter.call(user)
           end
 
-          flash[:notice] = Searls::Auth.config.resolve(
-            :flash_notice_after_email_verified,
-            user,
-            params
-          )
+          flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_email_verified, user, params)
 
           Searls::Auth.config.after_login_success.call(user)
           session[:user_id] = user.id
@@ -55,10 +51,7 @@ module Searls
 
           redirect_after_login(user)
         else
-          flash[:alert] = Searls::Auth.config.resolve(
-            :flash_error_after_verify_attempt_invalid_link,
-            params
-          )
+          flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
 
           redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],

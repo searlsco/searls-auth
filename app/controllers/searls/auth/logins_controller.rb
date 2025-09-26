@@ -18,10 +18,7 @@ module Searls
       def destroy
         ResetsSession.new.reset(self, except_for: [:has_logged_in_before])
 
-        flash[:notice] = Searls::Auth.config.resolve(
-          :flash_notice_after_logout,
-          params
-        )
+        flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_logout, params)
         redirect_to searls_auth.login_path
       end
 
@@ -40,16 +37,9 @@ module Searls
               redirect_path: params[:redirect_path],
               redirect_subdomain: params[:redirect_subdomain]
             )
-            Searls::Auth.config.resolve(
-              :flash_notice_after_login_with_unverified_email,
-              resend_path,
-              params
-            )
+            Searls::Auth.config.resolve(:flash_notice_after_login_with_unverified_email, resend_path, params)
           else
-            Searls::Auth.config.resolve(
-              :flash_notice_after_login,
-              result.user, params
-            )
+            Searls::Auth.config.resolve(:flash_notice_after_login, result.user, params)
           end
           redirect_after_login(result.user)
         elsif result.email_unverified?
@@ -95,10 +85,7 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain],
             email_otp: session[:searls_auth_email_otp]
           )
-          flash[:notice] = Searls::Auth.config.resolve(
-            :flash_notice_after_login_attempt,
-            user, params
-          )
+          flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_login_attempt, user, params)
           redirect_to searls_auth.verify_path({
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
