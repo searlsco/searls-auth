@@ -42,6 +42,8 @@ module Searls
           if verification_enabled
             deliver_email_verification(user, target_path:, target_subdomain:)
             session[:searls_auth_pending_email] = user.email
+            session[:searls_auth_pending_redirect_path] = target_path
+            session[:searls_auth_pending_redirect_subdomain] = target_subdomain
           end
 
           if Searls::Auth.config.email_verification_mode == :required

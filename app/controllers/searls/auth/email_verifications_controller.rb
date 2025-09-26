@@ -22,7 +22,15 @@ module Searls
         if session[:user_id].present?
           redirect_to searls_auth.verify_path
         else
-          fallback = session[:searls_auth_pending_email].present? ? searls_auth.pending_email_verification_path : searls_auth.login_path
+          fallback = if session[:searls_auth_pending_email].present?
+            searls_auth.pending_email_verification_path({
+              email: session[:searls_auth_pending_email],
+              redirect_path: session[:searls_auth_pending_redirect_path],
+              redirect_subdomain: session[:searls_auth_pending_redirect_subdomain]
+            }.compact_blank)
+          else
+            searls_auth.login_path
+          end
           redirect_back fallback_location: fallback
         end
       end

@@ -43,7 +43,7 @@ class PasswordResetFlowTest < ApplicationSystemTestCase
     fill_in "New password", with: "newsecret"
     fill_in "Confirm new password", with: "newsecret"
     click_button "Update password"
-    assert_current_path redirect_target, ignore_query: true
+    assert_current_path redirect_target
     assert_text "Your password has been reset."
 
     visit reset_url
@@ -53,7 +53,7 @@ class PasswordResetFlowTest < ApplicationSystemTestCase
     fill_in :email, with: @user.email
     fill_in :password, with: "newsecret"
     click_button "Log in"
-    assert_current_path redirect_target, ignore_query: true
+    assert_current_path redirect_target
     assert_text "You are now logged in"
   end
 
