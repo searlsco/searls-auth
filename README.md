@@ -238,7 +238,7 @@ Users can request another verification email. The engine exposes a PATCH endpoin
 ```erb
 <%# Anywhere in your app %>
 <%= link_to "Resend verification email",
-            searls_auth.resend_verification_path(email: current_user.email),
+            searls_auth.resend_email_verification_path,
             data: { turbo_method: :patch } %>
 ```
 
@@ -262,7 +262,7 @@ end
 | `[:email_link, :email_otp]` (default) | `:none` | Passwordless magic link + email OTP. Registration links go straight to the verify screen. |
 | `[:password]` | `:none` | Classic email/password. No email is sent; verify routes redirect back to login. |
 | `[:password, :email_link, :email_otp]` | `:optional` | Users can log in with either password or email. Registration logs the user in immediately and also emails a verification link. |
-| `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_verification_path`. |
+| `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_email_verification_path`. |
 
 In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain (cross-subdomain redirects still work via `redirect_subdomain`).
 

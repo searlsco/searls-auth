@@ -4,11 +4,11 @@ module Searls
       before_action :reset_expired_email_otp
 
       def show
-        render searls_auth_config.login_view, layout: searls_auth_config.layout
+        render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout
       end
 
       def create
-        if searls_auth_config.auth_methods.include?(:password) && params[:send_login_email].blank?
+        if Searls::Auth.config.auth_methods.include?(:password) && params[:send_login_email].blank?
           handle_password_login
         else
           handle_email_login
@@ -18,7 +18,7 @@ module Searls
       def destroy
         ResetsSession.new.reset(self, except_for: [:has_logged_in_before])
 
-        flash[:notice] = searls_auth_config.resolve(
+        flash[:notice] = Searls::Auth.config.resolve(
           :flash_notice_after_logout,
           params
         )
@@ -35,32 +35,32 @@ module Searls
           session[:user_id] = result.user.id
           session[:has_logged_in_before] = true
 
-          flash[:notice] = if email_verification_enabled? && !searls_auth_config.email_verified_predicate.call(result.user)
-            resend_path = searls_auth.resend_verification_path(
-              email: params[:email],
+          flash[:notice] = if email_verification_enabled? && !Searls::Auth.config.email_verified_predicate.call(result.user)
+            resend_path = searls_auth.resend_email_verification_path(
               redirect_path: params[:redirect_path],
               redirect_subdomain: params[:redirect_subdomain]
             )
-            searls_auth_config.resolve(
+            Searls::Auth.config.resolve(
               :flash_notice_after_login_with_unverified_email,
               resend_path,
               params
             )
           else
-            searls_auth_config.resolve(
+            Searls::Auth.config.resolve(
               :flash_notice_after_login,
               result.user, params
             )
           end
           redirect_after_login(result.user)
         elsif result.email_unverified?
-          resend_path = searls_auth.resend_verification_path(email: params[:email], redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain])
-          flash.now[:alert] = searls_auth_config.resolve(:flash_error_after_login_attempt_unverified_email, resend_path, params)
-          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
+          session[:searls_auth_pending_email] = params[:email]
+          resend_path = searls_auth.resend_email_verification_path(redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain])
+          flash.now[:alert] = Searls::Auth.config.resolve(:flash_error_after_login_attempt_unverified_email, resend_path, params)
+          render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
         else
-          user = searls_auth_config.user_finder_by_email.call(params[:email])
+          user = Searls::Auth.config.user_finder_by_email.call(params[:email])
           flash.now[:alert] = if user.blank?
-            searls_auth_config.resolve(
+            Searls::Auth.config.resolve(
               :flash_error_after_login_attempt_unknown_email,
               searls_auth.register_path(
                 email: params[:email],
@@ -70,20 +70,20 @@ module Searls
               params
             )
           else
-            searls_auth_config.resolve(:flash_error_after_login_attempt_invalid_password, params)
+            Searls::Auth.config.resolve(:flash_error_after_login_attempt_invalid_password, params)
           end
-          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
+          render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
         end
       rescue NameError
-        flash.now[:alert] = searls_auth_config.resolve(:flash_error_after_password_misconfigured, params)
-        render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
+        flash.now[:alert] = Searls::Auth.config.resolve(:flash_error_after_password_misconfigured, params)
+        render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
       end
 
       def handle_email_login
-        user = searls_auth_config.user_finder_by_email.call(params[:email])
+        user = Searls::Auth.config.user_finder_by_email.call(params[:email])
 
         if user.present?
-          if searls_auth_config.auth_methods.include?(:email_otp)
+          if Searls::Auth.config.auth_methods.include?(:email_otp)
             attach_email_otp_to_session!(user)
           else
             clear_email_otp_from_session!
@@ -95,7 +95,7 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain],
             email_otp: session[:searls_auth_email_otp]
           )
-          flash[:notice] = searls_auth_config.resolve(
+          flash[:notice] = Searls::Auth.config.resolve(
             :flash_notice_after_login_attempt,
             user, params
           )
@@ -104,7 +104,7 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain]
           }.compact_blank)
         else
-          flash.now[:alert] = searls_auth_config.resolve(
+          flash.now[:alert] = Searls::Auth.config.resolve(
             :flash_error_after_login_attempt_unknown_email,
             searls_auth.register_path(
               email: params[:email],
@@ -113,12 +113,12 @@ module Searls
             ),
             params
           )
-          render searls_auth_config.login_view, layout: searls_auth_config.layout, status: :unprocessable_content
+          render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
         end
       end
 
       def email_verification_enabled?
-        searls_auth_config.email_verification_mode.to_sym != :none
+        Searls::Auth.config.email_verification_mode != :none
       end
     end
   end

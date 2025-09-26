@@ -25,8 +25,7 @@ class Searls::UpdatesSettingsTest < TLDR
 
     result = Searls::Auth::UpdatesSettings.new(
       user: user,
-      params: params,
-      configuration: Searls::Auth.config
+      params: params
     ).update
 
     assert result.success?, "expected settings update to succeed"
@@ -52,8 +51,7 @@ class Searls::UpdatesSettingsTest < TLDR
 
     result = Searls::Auth::UpdatesSettings.new(
       user: user,
-      params: params,
-      configuration: Searls::Auth.config
+      params: params
     ).update
 
     refute result.success?, "expected settings update to fail"

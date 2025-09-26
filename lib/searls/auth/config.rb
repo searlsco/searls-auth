@@ -1,5 +1,23 @@
 module Searls
   module Auth
+    # Numeric config keys coerced to Integer and required to be > 0
+    NUMERIC_FIELDS = [
+      :email_otp_expiry_minutes,
+      :max_allowed_email_otp_attempts
+    ].freeze
+
+    # Core hooks that must always be callable
+    HOOK_FIELDS = [
+      :user_finder_by_email,
+      :user_finder_by_id,
+      :user_finder_by_token,
+      :user_initializer,
+      :token_generator,
+      :email_verified_predicate,
+      :email_verified_setter,
+      :validate_registration,
+      :after_login_success
+    ].freeze
     Config = Struct.new(
       :auth_methods, # array of symbols, e.g., [:email_link, :email_otp]
       :email_verification_mode, # :none, :optional, :required
@@ -28,6 +46,7 @@ module Searls
       :login_view, # string
       :register_view, # string
       :verify_view, # string
+      :pending_email_verification_view, # string
       :password_reset_request_view, # string
       :password_reset_edit_view, # string
       :mail_layout, # string
@@ -56,8 +75,8 @@ module Searls
       :flash_notice_after_login_attempt, # string or proc(user, params)
       :flash_error_after_login_attempt_unknown_email, # string or proc(register_path, params)
       :flash_error_after_login_attempt_invalid_password, # string or proc(params)
-      :flash_error_after_login_attempt_unverified_email, # string or proc(resend_verification_path, params)
-      :flash_notice_after_login_with_unverified_email, # string or proc(resend_verification_path, params)
+      :flash_error_after_login_attempt_unverified_email, # string or proc(resend_email_verification_path, params)
+      :flash_notice_after_login_with_unverified_email, # string or proc(resend_email_verification_path, params)
       :flash_error_after_password_misconfigured, # string or proc(params)
       :flash_error_after_password_reset_token_invalid, # string or proc(params)
       :flash_error_after_password_reset_password_mismatch, # string or proc(params)
@@ -80,80 +99,111 @@ module Searls
     ) do
       # Get values from values that might be procs
       def resolve(option, *args)
-        if self[option].respond_to?(:call)
-          self[option].call(*args)
-        else
-          self[option]
-        end
-      end
-
-      def auth_methods
-        Array(self[:auth_methods]).map(&:to_sym)
+        key = option.to_sym
+        value = public_send(key)
+        value.respond_to?(:call) ? value.call(*args) : value
       end
 
       def password_reset_enabled?
-        auth_methods.include?(:password) && !!self[:password_reset_enabled]
+        auth_methods.include?(:password) && password_reset_enabled
       end
 
       def password_present?(user)
-        predicate = self[:password_present_predicate]
+        predicate = password_present_predicate
         return false if predicate.nil?
 
         predicate.call(user)
       end
 
       def validate!
-        methods = auth_methods
-        mode_value = self[:email_verification_mode]
-        mode = mode_value.respond_to?(:to_sym) ? mode_value.to_sym : :none
-        self[:email_verification_mode] = mode
-
-        if mode != :none && (methods & [:email_link, :email_otp]).empty?
-          raise Searls::Auth::Error, "email_verification_mode is #{mode.inspect} but no email auth methods are enabled"
-        end
-
-        if methods.include?(:password)
-          using_default_hooks =
-            self[:password_verifier].equal?(Searls::Auth::DEFAULT_CONFIG[:password_verifier]) &&
-            self[:password_setter].equal?(Searls::Auth::DEFAULT_CONFIG[:password_setter])
-
-          if using_default_hooks && defined?(::User)
-            missing = []
-            missing << "User#authenticate" unless ::User.method_defined?(:authenticate)
-            begin
-              unless ::User.new.respond_to?(:password_digest)
-                missing << "users.password_digest"
-              end
-            rescue
-              # best-effort; ignore
-            end
-            if missing.any?
-              raise Searls::Auth::Error, "Password login requires #{missing.join(" and ")}. Add bcrypt/has_secure_password or override password hooks."
-            end
-          end
-
-          ensure_callable!(:password_reset_token_generator)
-          ensure_callable!(:password_reset_token_finder)
-          ensure_callable_optional!(:before_password_reset)
-          ensure_callable_optional!(:password_present_predicate)
-          self[:auto_login_after_password_reset] = !!self[:auto_login_after_password_reset]
-          self[:password_reset_enabled] = true if self[:password_reset_enabled].nil?
-          self[:password_reset_enabled] = !!self[:password_reset_enabled]
-        end
-        true
+        validate_auth_methods!
+        validate_email_verification_mode!
+        validate_password_settings!
+        validate_numeric_options!
+        validate_core_hooks!
       end
 
       private
 
+      def validate_auth_methods!
+        normalized = Array(auth_methods).map(&:to_sym)
+        self.auth_methods = normalized
+        allowed = [:password, :email_link, :email_otp]
+        raise Searls::Auth::Error, "auth_methods cannot be empty; enable at least one of :password, :email_link, or :email_otp" if normalized.empty?
+        unknown = normalized - allowed
+        if unknown.any?
+          raise Searls::Auth::Error, "Unknown auth_methods: #{unknown.inspect}. Allowed: #{allowed.inspect}"
+        end
+      end
+
+      def validate_email_verification_mode!
+        mode_value = email_verification_mode
+        mode = mode_value.respond_to?(:to_sym) ? mode_value.to_sym : :none
+        self.email_verification_mode = mode
+        auth_methods
+        # Allow email verification regardless of email auth methods; verification emails are separate
+      end
+
+      def validate_password_settings!
+        methods = auth_methods
+        return unless methods.include?(:password)
+
+        using_default_hooks =
+          password_verifier.equal?(Searls::Auth::DEFAULT_CONFIG[:password_verifier]) &&
+          password_setter.equal?(Searls::Auth::DEFAULT_CONFIG[:password_setter])
+
+        if using_default_hooks && defined?(::User)
+          missing = []
+          missing << "User#authenticate" unless ::User.method_defined?(:authenticate)
+          begin
+            unless ::User.new.respond_to?(:password_digest)
+              missing << "users.password_digest"
+            end
+          rescue
+            # best-effort; ignore
+          end
+          if missing.any?
+            raise Searls::Auth::Error, "Password login requires #{missing.join(" and ")}. Add bcrypt/has_secure_password or override password hooks."
+          end
+        end
+
+        ensure_callable!(:password_reset_token_generator)
+        ensure_callable!(:password_reset_token_finder)
+        ensure_callable!(:before_password_reset)
+        ensure_callable!(:password_present_predicate)
+        self.auto_login_after_password_reset = !!auto_login_after_password_reset
+        self.password_reset_enabled = true if password_reset_enabled.nil?
+        self.password_reset_enabled = !!password_reset_enabled
+      end
+
+      def validate_numeric_options!
+        NUMERIC_FIELDS.each do |key|
+          raw = public_send(key)
+          coerced = begin
+            Integer(raw)
+          rescue ArgumentError, TypeError
+            raise Searls::Auth::Error, "#{key} must be an integer"
+          end
+          if coerced < 1
+            raise Searls::Auth::Error, "#{key} must be >= 1"
+          end
+          public_send("#{key}=", coerced)
+        end
+      end
+
+      def validate_core_hooks!
+        HOOK_FIELDS.each { |key| ensure_callable!(key) }
+      end
+
       def ensure_callable!(key)
-        value = self[key]
+        value = public_send(key)
         return if value.respond_to?(:call)
 
         raise Searls::Auth::Error, "#{key} must be callable when password authentication is enabled"
       end
 
       def ensure_callable_optional!(key)
-        value = self[key]
+        value = public_send(key)
         return if value.nil? || value.respond_to?(:call)
 
         raise Searls::Auth::Error, "#{key} must be callable when provided"

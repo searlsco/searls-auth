@@ -5,12 +5,12 @@ module Searls
       before_action :clear_email_otp_from_session!, only: [:show, :create]
 
       def show
-        render searls_auth_config.password_reset_request_view, layout: searls_auth_config.layout
+        render Searls::Auth.config.password_reset_request_view, layout: Searls::Auth.config.layout
       end
 
       def create
         email = params[:email].to_s.strip
-        user = searls_auth_config.user_finder_by_email.call(email)
+        user = Searls::Auth.config.user_finder_by_email.call(email)
 
         if proceed_with_password_reset_request?(user) && deliverable_user?(user)
           Searls::Auth::DeliversPasswordReset.new.deliver(
@@ -20,7 +20,7 @@ module Searls
           )
         end
 
-        flash[:notice] = searls_auth_config.resolve(:flash_notice_after_password_reset_email, params)
+        flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_password_reset_email, params)
         redirect_to searls_auth.password_reset_request_path(
           email: email,
           redirect_path: params[:redirect_path],
@@ -31,9 +31,9 @@ module Searls
       private
 
       def ensure_password_reset_enabled
-        return if searls_auth_config.password_reset_enabled?
+        return if Searls::Auth.config.password_reset_enabled?
 
-        flash[:alert] = searls_auth_config.resolve(:flash_error_after_password_reset_not_enabled, params)
+        flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_password_reset_not_enabled, params)
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
@@ -42,14 +42,11 @@ module Searls
 
       def deliverable_user?(user)
         return false if user.blank?
-        searls_auth_config.password_present?(user)
+        Searls::Auth.config.password_present?(user)
       end
 
       def proceed_with_password_reset_request?(user)
-        hook = searls_auth_config.before_password_reset
-        return true unless hook.respond_to?(:call)
-
-        result = hook.call(user, params, self)
+        result = Searls::Auth.config.before_password_reset.call(user, params, self)
         !(result == false || result == :halt)
       end
     end

@@ -31,7 +31,7 @@ module Searls
       password_setter: ->(user, password) { user.password = password },
       password_reset_token_generator: ->(user) { user.generate_token_for(:password_reset) },
       password_reset_token_finder: ->(token) { User.find_by_token_for(:password_reset, token) },
-      before_password_reset: nil,
+      before_password_reset: ->(user, params, controller) { true },
       password_reset_enabled: true,
       email_verified_predicate: ->(user) { user.respond_to?(:email_verified_at) && user.email_verified_at.present? },
       email_verified_setter: ->(user, time = Time.current) { user.respond_to?(:email_verified_at) ? user.update!(email_verified_at: time) : true },
@@ -44,6 +44,7 @@ module Searls
       register_view: "searls/auth/registrations/show",
       login_view: "searls/auth/logins/show",
       verify_view: "searls/auth/verifications/show",
+      pending_email_verification_view: "searls/auth/registrations/pending_email_verification",
       password_reset_request_view: "searls/auth/requests_password_resets/show",
       password_reset_edit_view: "searls/auth/resets_passwords/show",
       mail_layout: "searls/auth/layouts/mailer",
@@ -67,7 +68,7 @@ module Searls
       },
       # Hook setup
       validate_registration: ->(user, params, errors) { errors },
-      after_login_success: nil,
+      after_login_success: ->(user) {},
       # Branding setup
       app_name: nil,
       app_url: nil,
@@ -111,13 +112,15 @@ module Searls
 
     }.freeze
 
-    CONFIG = Config.new(**DEFAULT_CONFIG)
-    def self.configure(&blk)
-      yield CONFIG
+    C_O_N_F_I_G__D_O_N_T_R_E_F_E_R_E_N_C_E__T_H_I_S__D_I_R_E_C_T_L_Y_L_O_L = Config.new(**DEFAULT_CONFIG)
+    def self.configure
+      yield C_O_N_F_I_G__D_O_N_T_R_E_F_E_R_E_N_C_E__T_H_I_S__D_I_R_E_C_T_L_Y_L_O_L
+      C_O_N_F_I_G__D_O_N_T_R_E_F_E_R_E_N_C_E__T_H_I_S__D_I_R_E_C_T_L_Y_L_O_L.validate!
+      C_O_N_F_I_G__D_O_N_T_R_E_F_E_R_E_N_C_E__T_H_I_S__D_I_R_E_C_T_L_Y_L_O_L
     end
 
     def self.config
-      CONFIG.dup.freeze
+      C_O_N_F_I_G__D_O_N_T_R_E_F_E_R_E_N_C_E__T_H_I_S__D_I_R_E_C_T_L_Y_L_O_L.dup.freeze
     end
   end
 end

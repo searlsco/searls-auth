@@ -4,8 +4,7 @@ module Searls
       Result = Struct.new(:success?, keyword_init: true)
 
       def deliver(user:, redirect_path: nil, redirect_subdomain: nil)
-        configuration = Searls::Auth.config
-        token = configuration.password_reset_token_generator.call(user)
+        token = Searls::Auth.config.password_reset_token_generator.call(user)
         PasswordResetMailer.with(
           user:,
           token:,

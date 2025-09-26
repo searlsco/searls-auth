@@ -22,7 +22,7 @@ module Searls
         end
 
         if user.save
-          configuration.after_login_success&.call(user)
+          configuration.after_login_success.call(user)
           Result.new(success?: true, user: user, errors: [])
         else
           Result.new(success?: false, user: user, errors: simplified_error_messages(user))

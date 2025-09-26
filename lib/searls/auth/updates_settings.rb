@@ -9,10 +9,9 @@ module Searls
         keyword_init: true
       )
 
-      def initialize(user:, params:, configuration:)
+      def initialize(user:, params:)
         @user = user
         @params = params || {}
-        @config = configuration
         @errors = []
         @password_changed = false
       end
@@ -46,28 +45,28 @@ module Searls
 
       private
 
-      attr_reader :user, :params, :config, :errors
+      attr_reader :user, :params, :errors
 
       def enforce_current_password_requirement
         return unless password_present?
         return unless password_change_requested?
 
         if current_password.blank?
-          errors << array_wrap(config.resolve(:flash_error_after_settings_current_password_missing, {}))
+          errors << array_wrap(Searls::Auth.config.resolve(:flash_error_after_settings_current_password_missing, {}))
           errors.flatten!
           return
         end
 
         begin
-          verified = config.password_verifier.call(user, current_password)
+          verified = Searls::Auth.config.password_verifier.call(user, current_password)
         rescue NameError
-          errors << array_wrap(config.resolve(:flash_error_after_password_misconfigured, {}))
+          errors << array_wrap(Searls::Auth.config.resolve(:flash_error_after_password_misconfigured, {}))
           errors.flatten!
           return
         end
 
         unless verified
-          errors << array_wrap(config.resolve(:flash_error_after_settings_current_password_invalid, {}))
+          errors << array_wrap(Searls::Auth.config.resolve(:flash_error_after_settings_current_password_invalid, {}))
           errors.flatten!
         end
       end
@@ -76,18 +75,18 @@ module Searls
         return unless password_change_requested?
 
         if new_password.blank?
-          errors << array_wrap(config.resolve(:flash_error_after_password_reset_password_blank, {}))
+          errors << array_wrap(Searls::Auth.config.resolve(:flash_error_after_password_reset_password_blank, {}))
           errors.flatten!
           return
         end
 
         if new_password != new_password_confirmation
-          errors << array_wrap(config.resolve(:flash_error_after_password_reset_password_mismatch, {}))
+          errors << array_wrap(Searls::Auth.config.resolve(:flash_error_after_password_reset_password_mismatch, {}))
           errors.flatten!
           return
         end
 
-        config.password_setter.call(user, new_password)
+        Searls::Auth.config.password_setter.call(user, new_password)
         if user.respond_to?(:password_confirmation=)
           user.password_confirmation = new_password_confirmation
         end
@@ -95,7 +94,7 @@ module Searls
       end
 
       def password_present?
-        config.password_present?(user)
+        Searls::Auth.config.password_present?(user)
       end
 
       def password_change_requested?

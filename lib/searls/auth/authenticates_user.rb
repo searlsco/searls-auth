@@ -14,7 +14,7 @@ module Searls
             generated_at > email_otp_expiry_cutoff &&
             email_otp == session[:searls_auth_email_otp] &&
             (user = Searls::Auth.config.user_finder_by_id.call(session[:searls_auth_email_otp_user_id])).present?
-          Searls::Auth.config.after_login_success&.call(user)
+          Searls::Auth.config.after_login_success.call(user)
           Result.new(success?: true, user: user)
         else
           Result.new(success?: false)
@@ -25,7 +25,7 @@ module Searls
         user = Searls::Auth.config.user_finder_by_token.call(token)
 
         if user.present?
-          Searls::Auth.config.after_login_success&.call(user)
+          Searls::Auth.config.after_login_success.call(user)
           Result.new(success?: true, user: user)
         else
           Result.new(success?: false)
@@ -49,7 +49,7 @@ module Searls
         end
 
         if ok
-          configuration.after_login_success&.call(user)
+          configuration.after_login_success.call(user)
           Result.new(success?: true, user: user)
         else
           Result.new(success?: false)
@@ -59,12 +59,11 @@ module Searls
       private
 
       def requires_verification?(configuration)
-        value = configuration.email_verification_mode
-        value.respond_to?(:to_sym) && value.to_sym == :required
+        configuration.email_verification_mode == :required
       end
 
       def email_otp_expiry_cutoff
-        minutes = Searls::Auth.config.email_otp_expiry_minutes.to_i
+        minutes = Searls::Auth.config.email_otp_expiry_minutes
         Time.zone.now - (minutes * 60)
       end
 

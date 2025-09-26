@@ -2,7 +2,7 @@ module Searls
   module Auth
     class RegistrationsController < BaseController
       def show
-        render searls_auth_config.register_view, layout: searls_auth_config.layout
+        render Searls::Auth.config.register_view, layout: Searls::Auth.config.layout
       end
 
       def create
@@ -11,7 +11,7 @@ module Searls
         if result.success?
           handle_post_registration(result.user)
         else
-          flash.now[:alert] = searls_auth_config.resolve(
+          flash.now[:alert] = Searls::Auth.config.resolve(
             :flash_error_after_register_attempt,
             result.error_messages,
             searls_auth.login_path(
@@ -21,52 +21,54 @@ module Searls
             ),
             params
           )
-          render searls_auth_config.register_view, layout: searls_auth_config.layout, status: :unprocessable_content
+          render Searls::Auth.config.register_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
         end
+      end
+
+      def pending_email_verification
+        render Searls::Auth.config.pending_email_verification_view, layout: Searls::Auth.config.layout
       end
 
       private
 
       def handle_post_registration(user)
-        password_registration = searls_auth_config.auth_methods.include?(:password) && params[:password].present?
-        email_methods_enabled = (searls_auth_config.auth_methods & [:email_link, :email_otp]).any?
-        verification_enabled = searls_auth_config.email_verification_mode.to_sym != :none
+        password_registration = Searls::Auth.config.auth_methods.include?(:password) && params[:password].present?
+        email_methods_enabled = (Searls::Auth.config.auth_methods & [:email_link, :email_otp]).any?
+        verification_enabled = Searls::Auth.config.email_verification_mode != :none
 
         target_path, target_subdomain = registration_redirect_destination(user)
 
         if password_registration
-          deliver_email_verification(user, target_path:, target_subdomain:) if verification_enabled
+          if verification_enabled
+            deliver_email_verification(user, target_path:, target_subdomain:)
+            session[:searls_auth_pending_email] = user.email
+          end
 
-          if searls_auth_config.email_verification_mode.to_sym == :required
-            flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
-            redirect_to searls_auth.verify_path({
+          if Searls::Auth.config.email_verification_mode == :required
+            flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_registration, user, params)
+            redirect_to searls_auth.pending_email_verification_path({
+              email: user.email,
               redirect_path: target_path,
               redirect_subdomain: target_subdomain
             }.compact_blank)
           else
-            complete_login_and_redirect(user)
+            session[:user_id] = user.id
+            session[:has_logged_in_before] = true
+            flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_login, user, params)
+            if (target = target_redirect_url)
+              redirect_with_host_awareness(target)
+            else
+              fallback = Searls::Auth.config.resolve(:redirect_path_after_login, user, params, request, main_app)
+              redirect_to(fallback || searls_auth.login_path)
+            end
           end
         elsif email_methods_enabled
           enqueue_login_verification_email(user, target_path:, target_subdomain:)
-          flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
+          flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_registration, user, params)
           redirect_to searls_auth.verify_path({
             redirect_path: target_path,
             redirect_subdomain: target_subdomain
           }.compact_blank)
-        else
-          complete_login_and_redirect(user)
-        end
-      end
-
-      def complete_login_and_redirect(user)
-        session[:user_id] = user.id
-        session[:has_logged_in_before] = true
-        flash[:notice] = searls_auth_config.resolve(:flash_notice_after_login, user, params)
-        if (target = target_redirect_url)
-          redirect_with_host_awareness(target)
-        else
-          fallback = searls_auth_config.resolve(:redirect_path_after_login, user, params, request, main_app)
-          redirect_to(fallback || searls_auth.login_path)
         end
       end
 
@@ -74,7 +76,7 @@ module Searls
         if redirect_params_supplied?
           [params[:redirect_path], params[:redirect_subdomain]]
         else
-          [searls_auth_config.resolve(:redirect_path_after_register, user, params, request, main_app), nil]
+          [Searls::Auth.config.resolve(:redirect_path_after_register, user, params, request, main_app), nil]
         end
       end
 
@@ -84,7 +86,7 @@ module Searls
 
       def enqueue_login_verification_email(user, target_path:, target_subdomain:)
         email_otp = nil
-        if searls_auth_config.auth_methods.include?(:email_otp)
+        if Searls::Auth.config.auth_methods.include?(:email_otp)
           attach_email_otp_to_session!(user)
           email_otp = session[:searls_auth_email_otp]
         else

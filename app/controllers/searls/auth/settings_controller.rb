@@ -8,29 +8,28 @@ module Searls
       helper_method :settings_user, :password_on_file?
 
       def edit
-        render :edit, layout: searls_auth_config.layout
+        render :edit, layout: Searls::Auth.config.layout
       end
 
       def update
         permitted_params = settings_params.to_h
         result = UpdatesSettings.new(
           user: settings_user,
-          params: permitted_params,
-          configuration: searls_auth_config
+          params: permitted_params
         ).update
 
         @settings_user = result.user
         @password_on_file = nil
 
         if result.success?
-          flash[:notice] = searls_auth_config.resolve(:flash_notice_after_settings_update, settings_user, params)
+          flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_settings_update, settings_user, params)
         else
           # Normally, we would flash.now and render `settings_view`, but this controller is
           # intended to back forms hosted elsewhere. Redirecting keeps the host UI in control
           # while surfacing validation errors via the session flash.
           flash[:alert] = Array(result.errors).compact_blank.first
         end
-        redirect_target = searls_auth_config.resolve(
+        redirect_target = Searls::Auth.config.resolve(
           :redirect_path_after_settings_change,
           settings_user, params, request, searls_auth
         ) || searls_auth.edit_settings_path
@@ -40,7 +39,7 @@ module Searls
       private
 
       def ensure_password_auth_enabled
-        return if searls_auth_config.auth_methods.include?(:password)
+        return if Searls::Auth.config.auth_methods.include?(:password)
 
         head :not_found and return
       end
@@ -55,7 +54,7 @@ module Searls
       end
 
       def load_settings_user
-        @settings_user = searls_auth_config.user_finder_by_id.call(session[:user_id])
+        @settings_user = Searls::Auth.config.user_finder_by_id.call(session[:user_id])
         return if @settings_user.present?
 
         session.delete(:user_id)
@@ -68,7 +67,7 @@ module Searls
       attr_reader :settings_user
 
       def password_on_file?
-        @password_on_file ||= settings_user && searls_auth_config.password_present?(settings_user)
+        @password_on_file ||= settings_user && Searls::Auth.config.password_present?(settings_user)
       end
 
       def settings_params

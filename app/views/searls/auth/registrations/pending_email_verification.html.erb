@@ -1,0 +1,16 @@
+<h1>Check your email!</h1>
+<p>
+  We sent a verification link to <strong><%= h(session[:searls_auth_pending_email]) || h(params[:email]) %></strong>.
+  Click the link to verify your email before you can log in with a password.
+  If it doesn’t arrive in a minute, check spam or resend it below.
+</p>
+
+<p style="margin-top: 1rem;">
+  <%= link_to "Resend verification email",
+              searls_auth.resend_email_verification_path({
+                redirect_path: params[:redirect_path],
+                redirect_subdomain: params[:redirect_subdomain],
+                return_to: "pending_email_verification"
+              }.compact_blank),
+              data: { turbo_method: :patch } %>
+</p>

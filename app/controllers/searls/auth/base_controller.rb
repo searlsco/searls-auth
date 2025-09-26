@@ -8,10 +8,6 @@ module Searls
 
       protected
 
-      def searls_auth_config
-        Searls::Auth.config
-      end
-
       def attach_email_otp_to_session!(user)
         session[:searls_auth_email_otp_user_id] = user.id
         session[:searls_auth_email_otp] = SecureRandom.random_number(1000000).to_s.rjust(6, "0")
@@ -21,7 +17,7 @@ module Searls
 
       def reset_expired_email_otp
         if (generated_at = session[:searls_auth_email_otp_generated_at]).present? &&
-            Time.zone.parse(generated_at) < searls_auth_config.email_otp_expiry_minutes.minutes.ago
+            Time.zone.parse(generated_at) < Searls::Auth.config.email_otp_expiry_minutes.minutes.ago
           clear_email_otp_from_session!
         end
       end
@@ -52,7 +48,7 @@ module Searls
         if (target = target_redirect_url)
           redirect_with_host_awareness(target)
         else
-          redirect_to searls_auth_config.resolve(
+          redirect_to Searls::Auth.config.resolve(
             :redirect_path_after_login,
             user, params, request, main_app
           ) || searls_auth.login_path
