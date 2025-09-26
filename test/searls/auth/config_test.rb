@@ -74,6 +74,36 @@ class Searls::Auth::ConfigTest < TLDR
     assert_includes err.message, "users.password_digest"
   end
 
+  # default User-hook validations
+  def test_default_user_hooks_require_user_constant
+    remove_user_constant
+    cleanup_active_model = ensure_active_model_defined
+    snapshot = Searls::Auth.config
+    assert_raises(Searls::Auth::Error) do
+      Searls::Auth.configure { |c| c.auth_methods = [:email_link] }
+    end
+    # restore without ActiveModel present so default-user validations are skipped
+    cleanup_active_model&.call
+    Searls::Auth.configure { |c| snapshot.each_pair { |k, v| c[k] = snapshot[k] } }
+  end
+
+  def test_default_user_hooks_require_expected_methods
+    # Looks ActiveModel-ish but missing find_by/token helpers
+    install_user_stub(Class.new do
+      def initialize(*)
+      end
+      attr_accessor :id
+    end)
+    cleanup_active_model = ensure_active_model_defined
+    snapshot = Searls::Auth.config
+    err = assert_raises(Searls::Auth::Error) do
+      Searls::Auth.configure { |c| c.auth_methods = [:email_link] }
+    end
+    assert_includes err.message, "User.find_by"
+    cleanup_active_model&.call
+    Searls::Auth.configure { |c| snapshot.each_pair { |k, v| c[k] = snapshot[k] } }
+  end
+
   def test_custom_password_hooks_skip_default_requirements
     install_user_stub(Class.new do
       def initialize
@@ -211,5 +241,13 @@ class Searls::Auth::ConfigTest < TLDR
 
   def remove_user_constant
     Object.send(:remove_const, :User) if Object.const_defined?(:User)
+  end
+
+  # Some validations only run when an ActiveModel/ActiveRecord environment is
+  # present. These helpers let us trigger that code path without adding deps.
+  def ensure_active_model_defined
+    return nil if Object.const_defined?(:ActiveModel)
+    Object.const_set(:ActiveModel, Module.new)
+    -> { Object.send(:remove_const, :ActiveModel) }
   end
 end

@@ -37,7 +37,8 @@ module Searls
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
-        ) and return
+        )
+        nil
       end
 
       def load_user_from_token
@@ -49,7 +50,8 @@ module Searls
         redirect_to searls_auth.password_reset_request_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
-        ) and return
+        )
+        nil
       end
 
       def handle_successful_reset(user)

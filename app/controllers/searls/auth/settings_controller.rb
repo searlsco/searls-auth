@@ -41,7 +41,8 @@ module Searls
       def ensure_password_auth_enabled
         return if Searls::Auth.config.auth_methods.include?(:password)
 
-        head :not_found and return
+        head :not_found
+        nil
       end
 
       def ensure_authenticated_user
@@ -50,7 +51,8 @@ module Searls
         redirect_to searls_auth.login_path(
           redirect_path: request.original_fullpath,
           redirect_subdomain: request.subdomain
-        ) and return
+        )
+        nil
       end
 
       def load_settings_user
@@ -61,7 +63,8 @@ module Searls
         redirect_to searls_auth.login_path(
           redirect_path: request.original_fullpath,
           redirect_subdomain: request.subdomain
-        ) and return
+        )
+        nil
       end
 
       attr_reader :settings_user

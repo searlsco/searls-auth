@@ -5,10 +5,7 @@ module Searls
 
       def show
         if !(Searls::Auth.config.auth_methods & [:email_link, :email_otp]).any?
-          redirect_to searls_auth.login_path(
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )
+          redirect_to searls_auth.login_path(**forwardable_params)
         else
           render Searls::Auth.config.verify_view, layout: Searls::Auth.config.layout
         end
@@ -18,17 +15,11 @@ module Searls
         auth_method = params[:short_code].present? ? :email_otp : :email_link
         if auth_method == :email_otp && !Searls::Auth.config.auth_methods.include?(:email_otp)
           flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
-          return redirect_to searls_auth.login_path(
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )
+          return redirect_to searls_auth.login_path(**forwardable_params)
         end
         if auth_method == :email_link && !Searls::Auth.config.auth_methods.include?(:email_link)
           flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
-          return redirect_to searls_auth.login_path(
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )
+          return redirect_to searls_auth.login_path(**forwardable_params)
         end
         authenticator = AuthenticatesUser.new
         result = case auth_method
@@ -57,20 +48,14 @@ module Searls
           if result.exceeded_email_otp_attempt_limit?
             clear_email_otp_from_session!
             flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_exceeds_limit, params)
-            redirect_to searls_auth.login_path(
-              redirect_path: params[:redirect_path],
-              redirect_subdomain: params[:redirect_subdomain]
-            )
+            redirect_to searls_auth.login_path(**forwardable_params)
           else
             flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_incorrect_email_otp, params)
             render Searls::Auth.config.verify_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
           end
         else
           flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
-          redirect_to searls_auth.login_path(
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )
+          redirect_to searls_auth.login_path(**forwardable_params)
         end
       end
     end

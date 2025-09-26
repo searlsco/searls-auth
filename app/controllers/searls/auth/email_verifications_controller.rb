@@ -11,11 +11,7 @@ module Searls
         if user.blank? || Searls::Auth.config.email_verification_mode == :none
           flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
         else
-          EmailsVerification.new.email(
-            user: user,
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )
+          EmailsVerification.new.email(user: user, **forwardable_params)
           flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_verification_email_resent, params)
         end
 
@@ -53,10 +49,7 @@ module Searls
         else
           flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_verify_attempt_invalid_link, params)
 
-          redirect_to searls_auth.login_path(
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          )
+          redirect_to searls_auth.login_path(**forwardable_params)
         end
       end
     end

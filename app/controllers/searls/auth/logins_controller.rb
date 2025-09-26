@@ -17,7 +17,6 @@ module Searls
 
       def destroy
         ResetsSession.new.reset(self, except_for: [:has_logged_in_before])
-
         flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_logout, params)
         redirect_to searls_auth.login_path
       end
@@ -32,11 +31,8 @@ module Searls
           session[:user_id] = result.user.id
           session[:has_logged_in_before] = true
 
-          flash[:notice] = if email_verification_enabled? && !Searls::Auth.config.email_verified_predicate.call(result.user)
-            resend_path = searls_auth.resend_email_verification_path(
-              redirect_path: params[:redirect_path],
-              redirect_subdomain: params[:redirect_subdomain]
-            )
+          flash[:notice] = if Searls::Auth.config.email_verification_mode != :none && !Searls::Auth.config.email_verified_predicate.call(result.user)
+            resend_path = searls_auth.resend_email_verification_path(**forwardable_params)
             Searls::Auth.config.resolve(:flash_notice_after_login_with_unverified_email, resend_path, params)
           else
             Searls::Auth.config.resolve(:flash_notice_after_login, result.user, params)
@@ -44,21 +40,13 @@ module Searls
           redirect_after_login(result.user)
         elsif result.email_unverified?
           session[:searls_auth_pending_email] = params[:email]
-          resend_path = searls_auth.resend_email_verification_path(redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain])
+          resend_path = searls_auth.resend_email_verification_path(**forwardable_params)
           flash.now[:alert] = Searls::Auth.config.resolve(:flash_error_after_login_attempt_unverified_email, resend_path, params)
           render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
         else
           user = Searls::Auth.config.user_finder_by_email.call(params[:email])
           flash.now[:alert] = if user.blank?
-            Searls::Auth.config.resolve(
-              :flash_error_after_login_attempt_unknown_email,
-              searls_auth.register_path(
-                email: params[:email],
-                redirect_path: params[:redirect_path],
-                redirect_subdomain: params[:redirect_subdomain]
-              ),
-              params
-            )
+            Searls::Auth.config.resolve(:flash_error_after_login_attempt_unknown_email, searls_auth.register_path(email: params[:email], **forwardable_params), params)
           else
             Searls::Auth.config.resolve(:flash_error_after_login_attempt_invalid_password, params)
           end
@@ -79,33 +67,13 @@ module Searls
             clear_email_otp_from_session!
           end
 
-          EmailsLink.new.email(
-            user:,
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain],
-            email_otp: session[:searls_auth_email_otp]
-          )
+          EmailsLink.new.email(user:, email_otp: session[:searls_auth_email_otp], **forwardable_params)
           flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_login_attempt, user, params)
-          redirect_to searls_auth.verify_path({
-            redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain]
-          }.compact_blank)
+          redirect_to searls_auth.verify_path(**forwardable_params)
         else
-          flash.now[:alert] = Searls::Auth.config.resolve(
-            :flash_error_after_login_attempt_unknown_email,
-            searls_auth.register_path(
-              email: params[:email],
-              redirect_path: params[:redirect_path],
-              redirect_subdomain: params[:redirect_subdomain]
-            ),
-            params
-          )
+          flash.now[:alert] = Searls::Auth.config.resolve(:flash_error_after_login_attempt_unknown_email, searls_auth.register_path(email: params[:email], **forwardable_params), params)
           render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout, status: :unprocessable_content
         end
-      end
-
-      def email_verification_enabled?
-        Searls::Auth.config.email_verification_mode != :none
       end
     end
   end

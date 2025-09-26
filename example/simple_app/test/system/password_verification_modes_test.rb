@@ -1,6 +1,4 @@
 require "application_system_test_case"
-require "cgi"
-require "uri"
 
 class PasswordVerificationModesTest < ApplicationSystemTestCase
   setup do

@@ -1,6 +1,4 @@
 require "application_system_test_case"
-require "cgi"
-require "uri"
 
 class PasswordOptionalEmailVerificationPasswordOnlyTest < ApplicationSystemTestCase
   setup do

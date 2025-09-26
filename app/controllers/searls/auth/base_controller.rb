@@ -5,6 +5,11 @@ module Searls
     class BaseController < ApplicationController
       helper Rails.application.helpers
       helper Rails.application.routes.url_helpers
+      helper_method :forwardable_params
+
+      def forwardable_params
+        {redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain]}.compact_blank
+      end
 
       protected
 

@@ -37,7 +37,8 @@ module Searls
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
           redirect_subdomain: params[:redirect_subdomain]
-        ) and return
+        )
+        nil
       end
 
       def deliverable_user?(user)

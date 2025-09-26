@@ -121,6 +121,7 @@ module Searls
         validate_password_settings!
         validate_numeric_options!
         validate_core_hooks!
+        validate_default_user_hooks!
       end
 
       private
@@ -155,13 +156,9 @@ module Searls
         if using_default_hooks && defined?(::User)
           missing = []
           missing << "User#authenticate" unless ::User.method_defined?(:authenticate)
-          begin
-            unless ::User.new.respond_to?(:password_digest)
-              missing << "users.password_digest"
-            end
-          rescue
-            # best-effort; ignore
-          end
+          has_password_digest_method = ::User.method_defined?(:password_digest)
+          has_password_digest_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("password_digest")
+          missing << "users.password_digest" unless has_password_digest_method || has_password_digest_column
           if missing.any?
             raise Searls::Auth::Error, "Password login requires #{missing.join(" and ")}. Add bcrypt/has_secure_password or override password hooks."
           end
@@ -207,6 +204,81 @@ module Searls
         return if value.nil? || value.respond_to?(:call)
 
         raise Searls::Auth::Error, "#{key} must be callable when provided"
+      end
+
+      # If any hooks still reference the default `User` implementation, make
+      # sure a compatible `User` exists and exposes the fields/methods our
+      # defaults assume (id, email, token helpers, etc.).
+      def validate_default_user_hooks!
+        hooks_pointing_at_user = [
+          :user_finder_by_email,
+          :user_finder_by_id,
+          :user_finder_by_token,
+          :user_initializer,
+          :token_generator
+        ].select { |k| public_send(k).equal?(Searls::Auth::DEFAULT_CONFIG[k]) }
+
+        return if hooks_pointing_at_user.empty?
+
+        # Enforce these checks only when ActiveModel is present (e.g., Rails).
+        return unless defined?(::ActiveModel)
+
+        unless defined?(::User)
+          raise Searls::Auth::Error,
+            "Default hooks assume a `User` model. Define `User` (Active Record/Active Model) or override: #{hooks_pointing_at_user.inspect}"
+        end
+
+        # Proceed with concrete, per-hook capability checks.
+
+        # One-off validations for each default hook
+        if public_send(:user_finder_by_id).equal?(Searls::Auth::DEFAULT_CONFIG[:user_finder_by_id])
+          unless ::User.respond_to?(:find_by)
+            raise Searls::Auth::Error, "Default :user_finder_by_id expects User.find_by(id: ...) to exist."
+          end
+          unless ::User.method_defined?(:id)
+            raise Searls::Auth::Error, "Default :user_finder_by_id expects a `User#id` attribute."
+          end
+        end
+
+        if public_send(:user_finder_by_email).equal?(Searls::Auth::DEFAULT_CONFIG[:user_finder_by_email])
+          unless ::User.respond_to?(:find_by)
+            raise Searls::Auth::Error, "Default :user_finder_by_email expects User.find_by(email: ...) to exist."
+          end
+          has_email_method = ::User.method_defined?(:email)
+          has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
+          unless has_email_method || has_email_column
+            raise Searls::Auth::Error, "Default :user_finder_by_email expects a `users.email` attribute."
+          end
+        end
+
+        if public_send(:user_finder_by_token).equal?(Searls::Auth::DEFAULT_CONFIG[:user_finder_by_token])
+          unless ::User.respond_to?(:find_by_token_for)
+            raise Searls::Auth::Error, "Default :user_finder_by_token expects User.find_by_token_for(:email_auth, token) (Rails signed_id API)."
+          end
+        end
+
+        if public_send(:user_initializer).equal?(Searls::Auth::DEFAULT_CONFIG[:user_initializer])
+          unless ::User.respond_to?(:new)
+            raise Searls::Auth::Error, "Default :user_initializer expects `User.new(email: ...)` to work."
+          end
+          begin
+            probe = ::User.new
+            has_email_setter = probe.respond_to?(:email=)
+            has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
+            unless has_email_setter || has_email_column
+              raise Searls::Auth::Error, "Default :user_initializer expects a writable email attribute on User."
+            end
+          rescue ArgumentError
+            # e.g., custom initialize signature
+            raise Searls::Auth::Error, "Default :user_initializer expects `User.new` with keyword args to be permissible."
+          end
+        end
+
+        if public_send(:token_generator).equal?(Searls::Auth::DEFAULT_CONFIG[:token_generator])
+          unless ::User.method_defined?(:generate_token_for)
+            raise Searls::Auth::Error, "Default :token_generator expects `user.generate_token_for(:email_auth)` (Rails signed_id API)."
+          end
+        end
       end
     end
   end

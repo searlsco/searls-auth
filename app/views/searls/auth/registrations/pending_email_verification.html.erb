@@ -7,9 +7,6 @@
 
 <p style="margin-top: 1rem;">
   <%= link_to "Resend verification email",
-    searls_auth.resend_email_verification_path({
-      redirect_path: params[:redirect_path],
-      redirect_subdomain: params[:redirect_subdomain]
-    }.compact_blank),
+    searls_auth.resend_email_verification_path(**forwardable_params),
     data: { turbo_method: :patch } %>
 </p>

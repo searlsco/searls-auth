@@ -72,11 +72,7 @@ module Searls
       private
 
       def forwardable_params
-        {
-          email: params[:email],
-          redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain]
-        }.compact_blank
+        @view_context.forwardable_params
       end
 
       def params
