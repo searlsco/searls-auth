@@ -99,10 +99,10 @@ module Searls
             :flash_notice_after_login_attempt,
             user, params
           )
-          redirect_to searls_auth.verify_path(
+          redirect_to searls_auth.verify_path({
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
-          )
+          }.compact_blank)
         else
           flash.now[:alert] = searls_auth_config.resolve(
             :flash_error_after_login_attempt_unknown_email,

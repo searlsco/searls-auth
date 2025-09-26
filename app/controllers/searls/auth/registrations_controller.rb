@@ -39,20 +39,20 @@ module Searls
 
           if searls_auth_config.email_verification_mode.to_sym == :required
             flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
-            redirect_to searls_auth.verify_path(
+            redirect_to searls_auth.verify_path({
               redirect_path: target_path,
               redirect_subdomain: target_subdomain
-            )
+            }.compact_blank)
           else
             complete_login_and_redirect(user)
           end
         elsif email_methods_enabled
           enqueue_login_verification_email(user, target_path:, target_subdomain:)
           flash[:notice] = searls_auth_config.resolve(:flash_notice_after_registration, user, params)
-          redirect_to searls_auth.verify_path(
+          redirect_to searls_auth.verify_path({
             redirect_path: target_path,
             redirect_subdomain: target_subdomain
-          )
+          }.compact_blank)
         else
           complete_login_and_redirect(user)
         end
@@ -62,7 +62,7 @@ module Searls
         session[:user_id] = user.id
         session[:has_logged_in_before] = true
         flash[:notice] = searls_auth_config.resolve(:flash_notice_after_login, user, params)
-        if redirect_params_supplied? && (target = full_redirect_target)
+        if (target = target_redirect_url)
           redirect_with_host_awareness(target)
         else
           fallback = searls_auth_config.resolve(:redirect_path_after_login, user, params, request, main_app)

@@ -5,7 +5,6 @@ module Searls
     class BaseController < ApplicationController # TODO should this be ActionController::Base? Trade-offs?
       helper Rails.application.helpers
       helper Rails.application.routes.url_helpers
-      before_action :sanitize_redirect_parameters
 
       protected
 
@@ -39,12 +38,8 @@ module Searls
         session[:searls_auth_email_otp_verification_attempts] += 1
       end
 
-      def full_redirect_target
-        Searls::Auth::GeneratesFullUrl.new(
-          request,
-          drop_subdomain: drop_subdomain?,
-          path_supplied: redirect_path_supplied?
-        ).generate(path: params[:redirect_path], subdomain: params[:redirect_subdomain])
+      def target_redirect_url
+        Searls::Auth::BuildsTargetRedirectUrl.new.build(request, params)
       end
 
       def redirect_with_host_awareness(target)
@@ -54,7 +49,7 @@ module Searls
       end
 
       def redirect_after_login(user)
-        if redirect_path_supplied? && (target = full_redirect_target)
+        if (target = target_redirect_url)
           redirect_with_host_awareness(target)
         else
           redirect_to searls_auth_config.resolve(
@@ -65,67 +60,6 @@ module Searls
       end
 
       private
-
-      def sanitize_redirect_parameters
-        raw_subdomain = params[:redirect_subdomain]
-        @redirect_drop_to_root = drop_subdomain_requested?(raw_subdomain)
-        @redirect_path_supplied = param_supplied?(:redirect_path)
-        params[:redirect_subdomain] = sanitized_subdomain(raw_subdomain)
-        params[:redirect_path] = sanitized_path(params[:redirect_path])
-      end
-
-      def sanitized_subdomain(raw)
-        return if raw.blank?
-
-        value = raw.to_s.downcase
-        value if value.match?(/\A[a-z0-9-]+\z/)
-      end
-
-      def sanitized_path(raw)
-        return if raw.blank?
-
-        value = raw.to_s.strip
-        return if value.blank?
-
-        uri = parse_uri(value)
-        value = path_from_uri(uri) if uri && (uri.host.present? || uri.scheme.present?)
-
-        normalized = value.start_with?("/") ? value : "/#{value}"
-        return if normalized.start_with?("//")
-
-        normalized
-      end
-
-      def parse_uri(value)
-        URI.parse(value)
-      rescue URI::InvalidURIError
-        nil
-      end
-
-      def path_from_uri(uri)
-        path = uri.path.presence || "/"
-        path += "?#{uri.query}" if uri.query.present?
-        path += "##{uri.fragment}" if uri.fragment.present?
-        path
-      end
-
-      def redirect_path_supplied?
-        !!@redirect_path_supplied
-      end
-
-      def param_supplied?(key)
-        params.key?(key) || params.key?(key.to_s)
-      end
-
-      def drop_subdomain?
-        !!@redirect_drop_to_root
-      end
-
-      def drop_subdomain_requested?(raw)
-        return false unless raw.is_a?(String)
-
-        raw.strip.empty?
-      end
     end
   end
 end

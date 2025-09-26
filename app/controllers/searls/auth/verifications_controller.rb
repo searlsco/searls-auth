@@ -51,7 +51,7 @@ module Searls
             :flash_notice_after_login,
             result.user, params
           )
-          if (target = full_redirect_target)
+          if (target = target_redirect_url)
             redirect_with_host_awareness(target)
           else
             redirect_to searls_auth_config.resolve(:redirect_path_after_login,
@@ -106,10 +106,10 @@ module Searls
             redirect_subdomain: params[:redirect_subdomain]
           )
           flash[:notice] = searls_auth_config.resolve(:flash_notice_after_verification_email_resent, params)
-          redirect_to searls_auth.verify_path(
+          redirect_to searls_auth.verify_path({
             redirect_path: params[:redirect_path],
             redirect_subdomain: params[:redirect_subdomain]
-          )
+          }.compact_blank)
         end
       end
     end

@@ -1,5 +1,7 @@
 # searls-auth
 
+[![Certified Shovelware](https://justin.searls.co/img/shovelware.svg)](https://justin.searls.co/shovelware/)
+
 This gem provides a Ruby on Rails engine that implements a minimal, opinionated, and pleasant email-based authentication system. It has zero other dependencies, which is the correct number of dependencies.
 
 For a detailed walk-through with pictures and whatnot, check out this [example app README](/example/simple_app/README.md). Below you'll find the basic steps for getting started.
