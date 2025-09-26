@@ -118,10 +118,12 @@ module Searls
       def validate!
         validate_auth_methods!
         validate_email_verification_mode!
-        validate_password_settings!
         validate_numeric_options!
         validate_core_hooks!
+        validate_password_settings!
         validate_default_user_hooks!
+      rescue PG::UndefinedTable, ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid
+        # don't validate when connection isn't esstablished
       end
 
       private
