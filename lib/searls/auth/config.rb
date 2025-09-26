@@ -122,8 +122,15 @@ module Searls
         validate_core_hooks!
         validate_password_settings!
         validate_default_user_hooks!
-      rescue PG::UndefinedTable, ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid
-        # don't validate when connection isn't esstablished
+      rescue => e
+        unless [
+          "PG::UndefinedTable",
+          "ActiveRecord::NoDatabaseError",
+          "ActiveRecord::StatementInvalid"
+        ].include?(e.class.inspect)
+          # don't validate when connection isn't esstablished
+          raise
+        end
       end
 
       private
