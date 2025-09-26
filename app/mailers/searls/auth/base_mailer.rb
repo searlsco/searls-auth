@@ -1,6 +1,6 @@
 module Searls
   module Auth
-    class BaseMailer < ApplicationMailer # TODO should this be ActionMailer::Base? Trade-offs?
+    class BaseMailer < ApplicationMailer
       helper Searls::Auth::ApplicationHelper
       include Searls::Auth::ApplicationHelper
 

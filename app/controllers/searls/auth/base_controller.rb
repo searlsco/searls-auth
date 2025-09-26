@@ -2,7 +2,7 @@ require "securerandom"
 
 module Searls
   module Auth
-    class BaseController < ApplicationController # TODO should this be ActionController::Base? Trade-offs?
+    class BaseController < ApplicationController
       helper Rails.application.helpers
       helper Rails.application.routes.url_helpers
 
