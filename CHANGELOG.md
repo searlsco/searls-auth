@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.0.0] - 2025-10-04
+
 * **BREAKING:** Rename `default_redirect_path_after_register` to `redirect_path_after_register`
 * **BREAKING:** Rename `flash_notice_after_verification` to `flash_notice_after_login`
 * Add password reset flow with default controllers, mailer, views, and configuration hooks

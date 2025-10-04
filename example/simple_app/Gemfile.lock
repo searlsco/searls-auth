@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    searls-auth (0.2.0)
+    searls-auth (1.0.0)
       railties (>= 8.0)
 
 GEM
