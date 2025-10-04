@@ -21,8 +21,9 @@ module Searls
       end
 
       def reset_expired_email_otp
-        if (generated_at = session[:searls_auth_email_otp_generated_at]).present? &&
-            Time.zone.parse(generated_at) < Searls::Auth.config.email_otp_expiry_minutes.minutes.ago
+        generated_at = session[:searls_auth_email_otp_generated_at]
+        cutoff = Searls::Auth.config.email_otp_expiry_minutes.minutes.ago
+        unless generated_at.present? && (parsed = Searls::Auth::ParsesTimeSafely.new.parse(generated_at)) && parsed > cutoff
           clear_email_otp_from_session!
         end
       end

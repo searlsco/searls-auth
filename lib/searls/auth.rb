@@ -1,4 +1,5 @@
 require_relative "auth/authenticates_user"
+require_relative "auth/parses_time_safely"
 require_relative "auth/config"
 require_relative "auth/builds_target_redirect_url" if defined?(Rails)
 require_relative "auth/creates_user" if defined?(Rails)

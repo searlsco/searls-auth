@@ -1,6 +1,9 @@
 module Searls
   module Auth
     class AuthenticatesUser
+      def initialize
+        @parses_time_safely = ParsesTimeSafely.new
+      end
       Result = Struct.new(:success?, :user, :exceeded_email_otp_attempt_limit?, :email_unverified?, keyword_init: true)
 
       def authenticate_by_email_otp(email_otp, session)
@@ -68,9 +71,7 @@ module Searls
       end
 
       def parse_otp_timestamp(value)
-        Time.zone.parse(value.to_s)
-      rescue ArgumentError, TypeError
-        nil
+        @parses_time_safely.parse(value)
       end
     end
   end
