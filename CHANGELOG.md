@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [1.0.1] - 2025-10-11
+
+* Skip database-aware configuration validations when Active Record migrations are pending
+
 ## [1.0.0] - 2025-10-04
 
 * **BREAKING:** Rename `default_redirect_path_after_register` to `redirect_path_after_register`
