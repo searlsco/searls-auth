@@ -165,9 +165,12 @@ module Searls
         if using_default_hooks && defined?(::User)
           missing = []
           missing << "User#authenticate" unless ::User.method_defined?(:authenticate)
-          has_password_digest_method = ::User.method_defined?(:password_digest)
-          has_password_digest_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("password_digest")
-          missing << "users.password_digest" unless has_password_digest_method || has_password_digest_column
+          unless schema_checks_blocked?
+            has_password_digest_method = ::User.method_defined?(:password_digest)
+            has_password_digest_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("password_digest")
+            missing << "users.password_digest" unless has_password_digest_method || has_password_digest_column
+          end
+
           if missing.any?
             raise Searls::Auth::Error, "Password login requires #{missing.join(" and ")}. Add bcrypt/has_secure_password or override password hooks."
           end
@@ -255,7 +258,7 @@ module Searls
           end
           has_email_method = ::User.method_defined?(:email)
           has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
-          unless has_email_method || has_email_column
+          unless schema_checks_blocked? || has_email_method || has_email_column
             raise Searls::Auth::Error, "Default :user_finder_by_email expects a `users.email` attribute."
           end
         end
@@ -274,7 +277,7 @@ module Searls
             probe = ::User.new
             has_email_setter = probe.respond_to?(:email=)
             has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
-            unless has_email_setter || has_email_column
+            unless schema_checks_blocked? || has_email_setter || has_email_column
               raise Searls::Auth::Error, "Default :user_initializer expects a writable email attribute on User."
             end
           rescue ArgumentError
@@ -287,6 +290,19 @@ module Searls
           unless ::User.method_defined?(:generate_token_for)
             raise Searls::Auth::Error, "Default :token_generator expects `user.generate_token_for(:email_auth)` (Rails signed_id API)."
           end
+        end
+      end
+
+      def schema_checks_blocked?
+        return true unless defined?(::ActiveRecord)
+        begin
+          if !::ActiveRecord::Base.connected? ||
+              !::ActiveRecord::Base.connection&.migration_context.present? ||
+              ::ActiveRecord::Base.connection.migration_context.needs_migration?
+            true
+          end
+        rescue
+          true
         end
       end
     end

@@ -71,7 +71,6 @@ class Searls::Auth::ConfigTest < TLDR
       c.password_setter = Searls::Auth::DEFAULT_CONFIG[:password_setter]
     end
     assert_includes err.message, "User#authenticate"
-    assert_includes err.message, "users.password_digest"
   end
 
   # default User-hook validations
