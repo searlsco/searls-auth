@@ -14,8 +14,6 @@ module Searls
         else
           if input.respond_to?(:in_time_zone)
             input.in_time_zone
-          else
-            parse_string(input.to_s)
           end
         end
       rescue ArgumentError, TypeError, NoMethodError
