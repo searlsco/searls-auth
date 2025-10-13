@@ -35,6 +35,18 @@ class PasswordOnlyTest < ApplicationSystemTestCase
     assert_text "Invalid password"
   end
 
+  def test_blank_password_does_not_login
+    @user.password_digest = nil
+    @user.save(validate: false)
+    @user.reload
+    assert_nil @user.password_digest
+    visit searls_auth.login_path
+    fill_in :email, with: @user.email
+    fill_in :password, with: ""
+    click_button "Log in"
+    assert_text "Invalid password"
+  end
+
   def test_no_send_login_email_button
     visit searls_auth.login_path
     refute_button "Send login email"
