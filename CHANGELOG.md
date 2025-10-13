@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [1.0.2] - 2025-10-13
+
+* Ensure password resets will be delivered if user does not have a password
+
 ## [1.0.1] - 2025-10-11
 
 * Skip database-aware configuration validations when Active Record migrations are pending
