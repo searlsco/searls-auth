@@ -12,7 +12,7 @@ module Searls
         email = params[:email].to_s.strip
         user = Searls::Auth.config.user_finder_by_email.call(email)
 
-        if proceed_with_password_reset_request?(user) && deliverable_user?(user)
+        if proceed_with_password_reset_request?(user)
           Searls::Auth::DeliversPasswordReset.new.deliver(
             user:,
             redirect_path: params[:redirect_path],
@@ -41,12 +41,9 @@ module Searls
         nil
       end
 
-      def deliverable_user?(user)
-        return false if user.blank?
-        Searls::Auth.config.password_present?(user)
-      end
-
       def proceed_with_password_reset_request?(user)
+        return false if user.blank?
+
         result = Searls::Auth.config.before_password_reset.call(user, params, self)
         !(result == false || result == :halt)
       end

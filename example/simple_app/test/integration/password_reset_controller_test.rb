@@ -80,6 +80,17 @@ class PasswordResetControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, ActionMailer::Base.deliveries.size
   end
 
+  def test_request_create_sends_email_when_user_has_no_password
+    @user.update_column(:password_digest, nil)
+
+    perform_enqueued_jobs do
+      post searls_auth.password_reset_request_path, params: {email: @user.email}
+    end
+
+    assert_redirected_to searls_auth.password_reset_request_path(email: @user.email)
+    assert_equal 1, ActionMailer::Base.deliveries.size
+  end
+
   def test_request_create_does_not_disclose_unknown_email
     perform_enqueued_jobs do
       post searls_auth.password_reset_request_path, params: {email: "nobody@example.com"}
