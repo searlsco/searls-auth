@@ -78,6 +78,10 @@ module Searls
       def params
         @view_context.params
       end
+
+      def request
+        @view_context.request
+      end
     end
 
     module ApplicationHelper

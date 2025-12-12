@@ -9,9 +9,11 @@ module Searls
     # Core hooks that must always be callable
     HOOK_FIELDS = [
       :user_finder_by_email,
+      :user_finder_by_email_for_registration,
       :user_finder_by_id,
       :user_finder_by_token,
       :user_initializer,
+      :existing_user_registration_blocked_predicate,
       :token_generator,
       :email_verified_predicate,
       :email_verified_setter,
@@ -23,9 +25,11 @@ module Searls
       :email_verification_mode, # :none, :optional, :required
       # Data setup
       :user_finder_by_email, # proc(email)
+      :user_finder_by_email_for_registration, # proc(email)
       :user_finder_by_id, # proc(id)
       :user_finder_by_token, # proc(token)
       :user_initializer, # proc(params)
+      :existing_user_registration_blocked_predicate, # proc(user, params)
       :user_name_method, # string
       :token_generator, # proc()
       :password_verifier, # proc(user, password)
@@ -224,6 +228,7 @@ module Searls
       def validate_default_user_hooks!
         hooks_pointing_at_user = [
           :user_finder_by_email,
+          :user_finder_by_email_for_registration,
           :user_finder_by_id,
           :user_finder_by_token,
           :user_initializer,
@@ -260,6 +265,17 @@ module Searls
           has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
           unless schema_checks_blocked? || has_email_method || has_email_column
             raise Searls::Auth::Error, "Default :user_finder_by_email expects a `users.email` attribute."
+          end
+        end
+
+        if public_send(:user_finder_by_email_for_registration).equal?(Searls::Auth::DEFAULT_CONFIG[:user_finder_by_email_for_registration])
+          unless ::User.respond_to?(:find_by)
+            raise Searls::Auth::Error, "Default :user_finder_by_email_for_registration expects User.find_by(email: ...) to exist."
+          end
+          has_email_method = ::User.method_defined?(:email)
+          has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
+          unless schema_checks_blocked? || has_email_method || has_email_column
+            raise Searls::Auth::Error, "Default :user_finder_by_email_for_registration expects a `users.email` attribute."
           end
         end
 

@@ -21,7 +21,7 @@ class EmailOtpAttemptLimitTest < ApplicationSystemTestCase
   end
 
   def test_exceeding_otp_attempt_limit_blocks_and_shows_message
-    visit searls_auth.login_path
+    visit searls_auth.login_path(redirect_subdomain: "no_turbo")
     fill_in :email, with: @user.email
     click_button "Log in"
     assert_text "Check your email!"
@@ -32,17 +32,17 @@ class EmailOtpAttemptLimitTest < ApplicationSystemTestCase
     bad = wrong_code(code)
 
     # 1st wrong attempt
-    fill_in :short_code, with: bad
+    fill_in "Code", with: bad
     click_button "Log in"
     assert_text "We weren't able to log you in with that code"
 
     # 2nd wrong attempt
-    fill_in :short_code, with: bad
+    fill_in "Code", with: bad
     click_button "Log in"
     assert_text "We weren't able to log you in with that code"
 
     # 3rd attempt exceeds max (2) → lockout
-    fill_in :short_code, with: bad
+    fill_in "Code", with: bad
     click_button "Log in"
     assert_current_path searls_auth.login_path, ignore_query: true
     assert_text "Too many verification attempts"

@@ -7,10 +7,10 @@ module Searls
       Result = Struct.new(:user, :success?, :error_messages)
 
       def call(params)
-        user = Searls::Auth.config.user_finder_by_email.call(params[:email]) ||
-          Searls::Auth.config.user_initializer.call(params)
+        found = Searls::Auth.config.user_finder_by_email_for_registration.call(params[:email])
+        user = found || Searls::Auth.config.user_initializer.call(params)
 
-        if user.persisted?
+        if user.persisted? && Searls::Auth.config.existing_user_registration_blocked_predicate.call(user, params)
           Result.new(nil, false, ["An account already exists for that email address. <a href=\"#{login_path(**forwardable_params(params))}\">Log in</a> instead?"])
         elsif (errors = Searls::Auth.config.validate_registration.call(user, params, [])).any?
           Result.new(nil, false, errors)
