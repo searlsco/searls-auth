@@ -4,6 +4,7 @@
   <%= f.hidden_field :token, value: @token %>
   <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
   <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+  <%= f.hidden_field :redirect_host, value: params[:redirect_host] %>
   <div>
     <%= label_tag :email, "Email address" %>
     <%= email_field_tag :email, @user_email, disabled: true %>

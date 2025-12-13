@@ -7,6 +7,7 @@ module Searls
         @token = params[:token]
         @redirect_path = params[:redirect_path]
         @redirect_subdomain = params[:redirect_subdomain]
+        @redirect_host = params[:redirect_host]
         @email_otp = params[:email_otp]
 
         mail(

@@ -17,6 +17,8 @@ module Searls
       :token_generator,
       :email_verified_predicate,
       :email_verified_setter,
+      :redirect_host_allowed_predicate,
+      :cross_cookie_domain_predicate,
       :validate_registration,
       :after_login_success
     ].freeze
@@ -64,6 +66,10 @@ module Searls
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
       :redirect_path_after_settings_change, # string or proc(user, params, request, routes), post-settings updates redirect here
+      :redirect_host_allowed_predicate, # proc(host, request)
+      :cross_domain_sso_token_generator, # proc(user, request)
+      :cross_domain_sso_token_param_name, # string
+      :cross_cookie_domain_predicate, # proc(request, target_host)
       # Hook setup
       :validate_registration, # proc(user, params, errors = []), must return an array of error messages where empty means valid
       :after_login_success, # proc(user)
@@ -124,6 +130,7 @@ module Searls
         validate_email_verification_mode!
         validate_numeric_options!
         validate_core_hooks!
+        ensure_callable_optional!(:cross_domain_sso_token_generator)
         validate_password_settings!
         validate_default_user_hooks!
       rescue => e

@@ -8,7 +8,7 @@ module Searls
       helper_method :forwardable_params
 
       def forwardable_params
-        {redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain]}.compact_blank
+        {redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain], redirect_host: params[:redirect_host]}.compact_blank
       end
 
       protected
@@ -40,8 +40,8 @@ module Searls
         session[:searls_auth_email_otp_verification_attempts] += 1
       end
 
-      def target_redirect_url
-        Searls::Auth::BuildsTargetRedirectUrl.new.build(request, params)
+      def target_redirect_url(user: nil)
+        Searls::Auth::BuildsTargetRedirectUrl.new.build(request, params, user: user)
       end
 
       def redirect_with_host_awareness(target)
@@ -49,7 +49,7 @@ module Searls
       end
 
       def redirect_after_login(user)
-        if (target = target_redirect_url)
+        if (target = target_redirect_url(user: user))
           redirect_with_host_awareness(target)
         else
           redirect_to Searls::Auth.config.resolve(

@@ -3,6 +3,7 @@
 <%= form_with url: searls_auth.login_path, method: :post, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
   <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
   <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
+  <%= f.hidden_field :redirect_host, value: params[:redirect_host] %>
   <%= render "searls/auth/shared/login_fields", f: f %>
   <div>
     <%= f.submit "Log in" %>

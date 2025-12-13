@@ -1,12 +1,13 @@
 module Searls
   module Auth
     class EmailsVerification
-      def email(user:, redirect_path: nil, redirect_subdomain: nil)
+      def email(user:, redirect_path: nil, redirect_subdomain: nil, redirect_host: nil)
         EmailVerificationMailer.with(
           user:,
           token: generate_token!(user),
           redirect_path:,
-          redirect_subdomain:
+          redirect_subdomain:,
+          redirect_host:
         ).verification_email.deliver_later
       end
 

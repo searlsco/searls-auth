@@ -84,6 +84,15 @@ end
 ```
 As stated in the comment above, you can find each configuration and its default value in the code.
 
+### Customize user lookup
+
+searls-auth uses separate hooks to find users by email for login vs registration:
+
+- `config.user_finder_by_email` is used by login.
+- `config.user_finder_by_email_for_registration` is used by registration to find an existing row to update (e.g., “upgrade” an existing user record).
+
+If `user_finder_by_email_for_registration` returns a persisted user, searls-auth will block the registration attempt unless `config.existing_user_registration_blocked_predicate.call(user, params)` returns `false`.
+
 ### Choose your login methods
 
 By default, users can log in either by clicking a magic link or by entering a 6‑digit code they receive via email. This is controlled by the `auth_methods` configuration:
@@ -265,6 +274,10 @@ end
 | `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_email_verification_path`. |
 
 In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain (cross-subdomain redirects still work via `redirect_subdomain`).
+
+For cross-cookie-domain apps, you can optionally pass `redirect_host`, but it is ignored unless `config.redirect_host_allowed_predicate.call(host, request)` returns true.
+
+When a login/verification redirects to another cookie domain, you can also append an SSO token by setting `config.cross_domain_sso_token_generator` (defaults to `nil`). The token param name defaults to `"sso_token"` (override via `config.cross_domain_sso_token_param_name`).
 
 ## Use it
 

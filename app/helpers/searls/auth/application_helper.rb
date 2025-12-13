@@ -55,6 +55,8 @@ module Searls
       end
 
       def enable_turbo?
+        return false if redirect_host_crosses_host?
+
         params[:redirect_subdomain].blank? || params[:redirect_subdomain] == request.subdomain
       end
 
@@ -81,6 +83,14 @@ module Searls
 
       def request
         @view_context.request
+      end
+
+      def redirect_host_crosses_host?
+        host = params[:redirect_host].to_s.strip.downcase
+        return false if host.blank?
+        return false unless Searls::Auth.config.redirect_host_allowed_predicate.call(host, request)
+
+        host != request.host
       end
     end
 

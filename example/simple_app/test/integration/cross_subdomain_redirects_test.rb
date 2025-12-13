@@ -4,6 +4,10 @@ class CrossSubdomainRedirectsTest < ActionDispatch::IntegrationTest
   setup do
     @previous_auth_methods = Searls::Auth.config.auth_methods.dup
     @previous_verification_mode = Searls::Auth.config.email_verification_mode
+    @previous_redirect_host_allowed_predicate = Searls::Auth.config.redirect_host_allowed_predicate
+    @previous_cross_domain_sso_token_generator = Searls::Auth.config.cross_domain_sso_token_generator
+    @previous_cross_domain_sso_token_param_name = Searls::Auth.config.cross_domain_sso_token_param_name
+    @previous_cross_cookie_domain_predicate = Searls::Auth.config.cross_cookie_domain_predicate
     Searls::Auth.configure do |config|
       config.auth_methods = [:password]
       config.email_verification_mode = :none
@@ -15,6 +19,10 @@ class CrossSubdomainRedirectsTest < ActionDispatch::IntegrationTest
     Searls::Auth.configure do |config|
       config.auth_methods = @previous_auth_methods
       config.email_verification_mode = @previous_verification_mode
+      config.redirect_host_allowed_predicate = @previous_redirect_host_allowed_predicate
+      config.cross_domain_sso_token_generator = @previous_cross_domain_sso_token_generator
+      config.cross_domain_sso_token_param_name = @previous_cross_domain_sso_token_param_name
+      config.cross_cookie_domain_predicate = @previous_cross_cookie_domain_predicate
     end
     User.delete_all
   end
@@ -88,6 +96,72 @@ class CrossSubdomainRedirectsTest < ActionDispatch::IntegrationTest
     assert_equal "http://example.com/dashboard", response.location
   ensure
     host! "www.example.com"
+  end
+
+  def test_password_login_ignores_redirect_host_by_default
+    user = create_user(email: "cross-host-default-deny@example.com")
+
+    post searls_auth.login_path, params: {
+      email: user.email,
+      password: "sekrit",
+      redirect_path: "/secret",
+      redirect_host: "evil.test"
+    }
+
+    assert_response :redirect
+    assert_equal "http://www.example.com/secret", response.location
+  end
+
+  def test_password_login_redirects_to_allowed_redirect_host
+    user = create_user(email: "cross-host-allowed@example.com")
+    Searls::Auth.configure do |config|
+      config.redirect_host_allowed_predicate = ->(host, request) { host == "other.test" }
+    end
+
+    post searls_auth.login_path, params: {
+      email: user.email,
+      password: "sekrit",
+      redirect_path: "/secret",
+      redirect_host: "other.test"
+    }
+
+    assert_response :redirect
+    assert_equal "http://other.test/secret", response.location
+  end
+
+  def test_password_registration_redirects_to_allowed_redirect_host
+    Searls::Auth.configure do |config|
+      config.redirect_host_allowed_predicate = ->(host, request) { host == "other.test" }
+    end
+
+    post searls_auth.register_path, params: {
+      email: "cross-host-registration@example.com",
+      password: "sekrit",
+      password_confirmation: "sekrit",
+      redirect_path: "/secret",
+      redirect_host: "other.test"
+    }
+
+    assert_response :redirect
+    assert_equal "http://other.test/secret", response.location
+  end
+
+  def test_password_login_appends_sso_token_when_redirecting_cross_cookie_domain
+    user = create_user(email: "cross-cookie-domain@example.com")
+    Searls::Auth.configure do |config|
+      config.redirect_host_allowed_predicate = ->(host, request) { host == "other.test" }
+      config.cross_domain_sso_token_generator = ->(user, request) { "token-123" }
+    end
+
+    post searls_auth.login_path, params: {
+      email: user.email,
+      password: "sekrit",
+      redirect_path: "/secret",
+      redirect_host: "other.test"
+    }
+
+    assert_response :redirect
+    assert_equal "http://other.test/secret?sso_token=token-123", response.location
   end
 
   private
