@@ -13,7 +13,6 @@
       <%= link_to verify_token_url({
         token: @token,
         redirect_path: @redirect_path,
-        redirect_subdomain: @redirect_subdomain,
         redirect_host: @redirect_host
       }.compact_blank) do %>
         <span style="width: 70%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); display: inline-block; padding-left: 2rem; padding-right: 2rem; padding-top: 1rem; padding-bottom: 1rem; font-size: 1.5rem; font-weight: 700; border-radius: 0.75rem; background-color: <%= @config.email_button_color %>; color: white;">Log in</span>

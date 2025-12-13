@@ -50,7 +50,7 @@ module Searls
 
         redirect_to searls_auth.login_path(
           redirect_path: request.original_fullpath,
-          redirect_subdomain: request.subdomain
+          redirect_host: request.host
         )
         nil
       end
@@ -62,7 +62,7 @@ module Searls
         session.delete(:user_id)
         redirect_to searls_auth.login_path(
           redirect_path: request.original_fullpath,
-          redirect_subdomain: request.subdomain
+          redirect_host: request.host
         )
         nil
       end

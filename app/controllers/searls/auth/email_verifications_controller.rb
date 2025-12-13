@@ -22,7 +22,6 @@ module Searls
             searls_auth.pending_email_verification_path({
               email: session[:searls_auth_pending_email],
               redirect_path: session[:searls_auth_pending_redirect_path],
-              redirect_subdomain: session[:searls_auth_pending_redirect_subdomain],
               redirect_host: session[:searls_auth_pending_redirect_host]
             }.compact_blank)
           else

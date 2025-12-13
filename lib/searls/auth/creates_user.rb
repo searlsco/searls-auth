@@ -32,7 +32,7 @@ module Searls
       private
 
       def forwardable_params(params)
-        params.permit(:redirect_path, :redirect_subdomain, :redirect_host, :email)
+        params.permit(:redirect_path, :redirect_host, :email)
       end
 
       def simplified_error_messages(model)

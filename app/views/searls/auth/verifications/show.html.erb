@@ -7,7 +7,6 @@
 <% if Searls::Auth.config.auth_methods.include?(:email_otp) %>
   <%= form_with(url: searls_auth.verify_path, method: :post, data: { turbo: searls_auth_helper.enable_turbo? }) do |f| %>
     <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
-    <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
     <%= f.hidden_field :redirect_host, value: params[:redirect_host] %>
     <div data-controller="<%= searls_auth_helper.otp_stimulus_controller %>">
       <%= f.label :short_code, "Code" %>

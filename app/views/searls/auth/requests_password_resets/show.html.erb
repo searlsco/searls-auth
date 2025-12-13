@@ -2,7 +2,6 @@
 
 <%= form_with url: searls_auth.password_reset_request_path, method: :post, data: {controller: searls_auth_helper.login_stimulus_controller} do |f| %>
   <%= f.hidden_field :redirect_path, value: params[:redirect_path] %>
-  <%= f.hidden_field :redirect_subdomain, value: params[:redirect_subdomain] %>
   <%= f.hidden_field :redirect_host, value: params[:redirect_host] %>
   <div>
     <%= f.label :email, "Email address" %>

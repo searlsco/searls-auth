@@ -2,7 +2,7 @@
 
 This is the remaining `searls-auth` gem work needed for grog/BWB adoption.
 
-- [x] Add **cross-cookie-domain** redirect support (not just `redirect_subdomain`)
+- [x] Add **cross-host** redirect support (not just path-only redirects)
   - [x] Accept a `redirect_host` param (optional), and reject/ignore it by default
   - [x] Add a config hook to validate hosts (e.g. `redirect_host_allowed_predicate`)
   - [x] Extend `Searls::Auth::BuildsTargetRedirectUrl` to build absolute URLs using `redirect_host` when allowed

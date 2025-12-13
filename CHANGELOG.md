@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+* **BREAKING:** Remove `redirect_subdomain` support in favor of `redirect_host`
+* **BREAKING:** Replace `redirect_host_allowed_predicate`, `cross_domain_sso_token_generator`, and `cross_cookie_domain_predicate` with `token_for_cross_domain_redirect`
+
 ## [1.0.2] - 2025-10-13
 
 * Ensure password resets will be delivered if user does not have a password

@@ -18,19 +18,19 @@ class PendingResendViaGetNoJsTest < ApplicationSystemTestCase
   end
 
   def test_resend_via_get_keeps_you_on_pending
-    visit searls_auth.register_path(redirect_path: "/after", redirect_subdomain: "app")
+    visit searls_auth.register_path(redirect_path: "/after", redirect_host: "app.example.com")
     fill_in :email, with: "nojs@example.com"
     fill_in :password, with: "sekrit"
     fill_in :password_confirmation, with: "sekrit"
     click_button "Register"
-    assert_current_path searls_auth.pending_email_verification_path(email: "nojs@example.com", redirect_path: "/after", redirect_subdomain: "app")
+    assert_current_path searls_auth.pending_email_verification_path(email: "nojs@example.com", redirect_path: "/after", redirect_host: "app.example.com")
     assert_equal 1, ActionMailer::Base.deliveries.size
 
     # Simulate no-JS GET (no turbo-method patch). Visiting the URL directly
     visit searls_auth.resend_email_verification_path
 
     assert_text "Verification email sent"
-    assert_current_path searls_auth.pending_email_verification_path(email: "nojs@example.com", redirect_path: "/after", redirect_subdomain: "app")
+    assert_current_path searls_auth.pending_email_verification_path(email: "nojs@example.com", redirect_path: "/after", redirect_host: "app.example.com")
     assert_equal 2, ActionMailer::Base.deliveries.size
   end
 end

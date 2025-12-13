@@ -273,11 +273,11 @@ end
 | `[:password, :email_link, :email_otp]` | `:optional` | Users can log in with either password or email. Registration logs the user in immediately and also emails a verification link. |
 | `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_email_verification_path`. |
 
-In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain (cross-subdomain redirects still work via `redirect_subdomain`).
+In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain.
 
-For cross-cookie-domain apps, you can optionally pass `redirect_host`, but it is ignored unless `config.redirect_host_allowed_predicate.call(host, request)` returns true.
+You can optionally pass `redirect_host` to redirect to another host (e.g., an admin subdomain or another app).
 
-When a login/verification redirects to another cookie domain, you can also append an SSO token by setting `config.cross_domain_sso_token_generator` (defaults to `nil`). The token param name defaults to `"sso_token"` (override via `config.cross_domain_sso_token_param_name`).
+When redirecting to another cookie domain, you can append an SSO token by setting `config.token_for_cross_domain_redirect` (defaults to `nil`). It is called with `(user, request, target_host)` and should return a token string or `nil`.
 
 ### Multi-domain logout bounce
 

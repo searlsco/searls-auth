@@ -8,7 +8,7 @@ module Searls
       helper_method :forwardable_params
 
       def forwardable_params
-        {redirect_path: params[:redirect_path], redirect_subdomain: params[:redirect_subdomain], redirect_host: params[:redirect_host]}.compact_blank
+        {redirect_path: params[:redirect_path], redirect_host: params[:redirect_host]}.compact_blank
       end
 
       protected

@@ -36,7 +36,6 @@ module Searls
         flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_password_reset_not_enabled, params)
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain],
           redirect_host: params[:redirect_host]
         )
         nil
@@ -50,7 +49,6 @@ module Searls
         flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_password_reset_token_invalid, params)
         redirect_to searls_auth.password_reset_request_path(
           redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain],
           redirect_host: params[:redirect_host]
         )
         nil
@@ -66,7 +64,6 @@ module Searls
         else
           redirect_to searls_auth.login_path(
             redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain],
             redirect_host: params[:redirect_host]
           )
         end

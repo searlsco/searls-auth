@@ -21,7 +21,7 @@ class EmailOtpAttemptLimitTest < ApplicationSystemTestCase
   end
 
   def test_exceeding_otp_attempt_limit_blocks_and_shows_message
-    visit searls_auth.login_path(redirect_subdomain: "no_turbo")
+    visit searls_auth.login_path(redirect_host: "no-turbo.example.com")
     fill_in :email, with: @user.email
     click_button "Log in"
     assert_text "Check your email!"

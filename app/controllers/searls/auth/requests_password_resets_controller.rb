@@ -16,7 +16,6 @@ module Searls
           Searls::Auth::DeliversPasswordReset.new.deliver(
             user:,
             redirect_path: params[:redirect_path],
-            redirect_subdomain: params[:redirect_subdomain],
             redirect_host: params[:redirect_host]
           )
         end
@@ -25,7 +24,6 @@ module Searls
         redirect_to searls_auth.password_reset_request_path(
           email: email,
           redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain],
           redirect_host: params[:redirect_host]
         )
       end
@@ -38,7 +36,6 @@ module Searls
         flash[:alert] = Searls::Auth.config.resolve(:flash_error_after_password_reset_not_enabled, params)
         redirect_to searls_auth.login_path(
           redirect_path: params[:redirect_path],
-          redirect_subdomain: params[:redirect_subdomain],
           redirect_host: params[:redirect_host]
         )
         nil

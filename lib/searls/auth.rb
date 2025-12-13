@@ -69,14 +69,7 @@ module Searls
       redirect_path_after_settings_change: ->(user, params, request, routes) {
         routes.respond_to?(:edit_settings_path) ? routes.edit_settings_path : "/settings"
       },
-      redirect_host_allowed_predicate: ->(_host, _request) { false },
-      cross_domain_sso_token_generator: nil,
-      cross_domain_sso_token_param_name: "sso_token",
-      cross_cookie_domain_predicate: ->(request, target_host) {
-        left = request.host.to_s.split(".").last(2).join(".")
-        right = target_host.to_s.split(".").last(2).join(".")
-        left != right
-      },
+      token_for_cross_domain_redirect: nil,
       # Hook setup
       validate_registration: ->(user, params, errors) { errors },
       after_login_success: ->(user) {},
