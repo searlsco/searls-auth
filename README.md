@@ -279,6 +279,14 @@ For cross-cookie-domain apps, you can optionally pass `redirect_host`, but it is
 
 When a login/verification redirects to another cookie domain, you can also append an SSO token by setting `config.cross_domain_sso_token_generator` (defaults to `nil`). The token param name defaults to `"sso_token"` (override via `config.cross_domain_sso_token_param_name`).
 
+### Multi-domain logout bounce
+
+The engine provides `searls_auth.logout_path`, which clears the current session on the current host.
+
+If your app uses multiple cookie domains, the engine cannot clear the other domain’s session cookie. The simplest approach is to implement logout in your host app and “bounce” through the other domain(s), clearing each cookie in turn.
+
+If you mount the engine at `/`, you can shadow its `/logout` route by defining your own `get "/logout"` route before the `mount` line. Your controller can call `Searls::Auth::ResetsSession.new.reset(self, except_for: [...])` and then redirect to your other domain’s logout endpoint with a `return_to` back to your primary domain.
+
 ## Use it
 
 Of course, having a user be "logged in" or not doesn't mean anything if your application doesn't do anything with the knowledge. Users that are logged in will have `session[:user_id]` set to the value of the logged-in user's ID. Logged out users won't have anything set to `session[:user_id]`. What you do with that is your job, not this gem. (Wait, after 20 years does this mean I finally understand the difference between authentication and authorization? Better late than never.)

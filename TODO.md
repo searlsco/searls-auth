@@ -11,8 +11,8 @@ This is the remaining `searls-auth` gem work needed for grog/BWB adoption.
   - [x] Provide a config hook (e.g. `cross_domain_sso_token_generator`) that can append `sso_token=...` when redirecting to another cookie domain
   - [x] Make token param name configurable (default `sso_token`)
   - [x] Provide an overridable way to decide “cross-cookie-domain” (default: registrable domain differs)
-- [ ] Add (or document) **logout bounce** support for multi-domain apps
-  - [ ] Either: first-class config for “also clear session on another domain”, or explicit docs showing how host apps can implement it
+- [x] Add (or document) **logout bounce** support for multi-domain apps
+  - [x] Either: first-class config for “also clear session on another domain”, or explicit docs showing how host apps can implement it
 - [x] Add example app coverage
   - [x] Add integration/system tests proving `redirect_host` is rejected by default and allowed when configured
   - [x] Add a test proving SSO token appending works when enabled
