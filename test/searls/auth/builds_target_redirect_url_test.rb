@@ -75,14 +75,14 @@ class Searls::Auth::BuildsTargetRedirectUrlTest < TLDR
   end
 
   def with_cross_domain_token
-    previous = Searls::Auth.config.token_for_cross_domain_redirect
+    previous = Searls::Auth.config.sso_token_for_cross_domain_redirects
     Searls::Auth.configure do |config|
-      config.token_for_cross_domain_redirect = ->(_user, _request, _target_host) { "token-123" }
+      config.sso_token_for_cross_domain_redirects = ->(_user, _request, _target_host) { "token-123" }
     end
     yield
   ensure
     Searls::Auth.configure do |config|
-      config.token_for_cross_domain_redirect = previous
+      config.sso_token_for_cross_domain_redirects = previous
     end
   end
 end

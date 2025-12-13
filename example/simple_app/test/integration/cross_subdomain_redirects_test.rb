@@ -4,7 +4,7 @@ class CrossSubdomainRedirectsTest < ActionDispatch::IntegrationTest
   setup do
     @previous_auth_methods = Searls::Auth.config.auth_methods.dup
     @previous_verification_mode = Searls::Auth.config.email_verification_mode
-    @previous_token_for_cross_domain_redirect = Searls::Auth.config.token_for_cross_domain_redirect
+    @previous_sso_token_for_cross_domain_redirects = Searls::Auth.config.sso_token_for_cross_domain_redirects
     Searls::Auth.configure do |config|
       config.auth_methods = [:password]
       config.email_verification_mode = :none
@@ -16,7 +16,7 @@ class CrossSubdomainRedirectsTest < ActionDispatch::IntegrationTest
     Searls::Auth.configure do |config|
       config.auth_methods = @previous_auth_methods
       config.email_verification_mode = @previous_verification_mode
-      config.token_for_cross_domain_redirect = @previous_token_for_cross_domain_redirect
+      config.sso_token_for_cross_domain_redirects = @previous_sso_token_for_cross_domain_redirects
     end
     User.delete_all
   end
@@ -95,7 +95,7 @@ class CrossSubdomainRedirectsTest < ActionDispatch::IntegrationTest
   def test_password_login_appends_sso_token_when_redirecting_cross_cookie_domain
     user = create_user(email: "cross-cookie-domain@example.com")
     Searls::Auth.configure do |config|
-      config.token_for_cross_domain_redirect = ->(user, request, target_host) {
+      config.sso_token_for_cross_domain_redirects = ->(user, request, target_host) {
         "token-123" if target_host == "other.test"
       }
     end

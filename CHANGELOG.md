@@ -1,7 +1,7 @@
 ## [Unreleased]
 
 * **BREAKING:** Remove `redirect_subdomain` support in favor of `redirect_host`
-* **BREAKING:** Replace `redirect_host_allowed_predicate`, `cross_domain_sso_token_generator`, and `cross_cookie_domain_predicate` with `token_for_cross_domain_redirect`
+* **BREAKING:** Replace `redirect_host_allowed_predicate`, `cross_domain_sso_token_generator`, and `cross_cookie_domain_predicate` with `sso_token_for_cross_domain_redirects`
 
 ## [1.0.2] - 2025-10-13
 

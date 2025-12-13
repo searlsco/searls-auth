@@ -12,7 +12,11 @@ module Searls
           path
         elsif host.present? && host != request.host
           url = absolute_url(request, host, path)
-          append_cross_domain_sso_token(url, request, user, host) || path
+          if same_cookie_domain?(request, host)
+            url
+          else
+            append_cross_domain_sso_token(url, request, user, host) || path
+          end
         end
       end
 
@@ -51,11 +55,10 @@ module Searls
       end
 
       def append_cross_domain_sso_token(url, request, user, host)
-        return url if cookie_domain_shared?(request, host)
         return if user.blank?
 
         token = begin
-          provider = Searls::Auth.config.token_for_cross_domain_redirect
+          provider = Searls::Auth.config.sso_token_for_cross_domain_redirects
           provider&.call(user, request, host)
         end
         return if token.blank?
@@ -67,11 +70,8 @@ module Searls
         uri.to_s
       end
 
-      def cookie_domain_shared?(request, host)
-        domain = request.domain.presence || begin
-          parts = request.host.to_s.split(".")
-          (parts.length > 2) ? parts.last(2).join(".") : parts.last
-        end.to_s
+      def same_cookie_domain?(request, host)
+        domain = request.domain
         return false if domain.blank?
 
         host == domain || host.end_with?(".#{domain}")

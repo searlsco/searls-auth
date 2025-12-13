@@ -277,7 +277,7 @@ In every case, `redirect_path` values are normalized to on-site URLs, so forward
 
 You can optionally pass `redirect_host` to redirect to another host (e.g., an admin subdomain or another app).
 
-When redirecting to another cookie domain, you can append an SSO token by setting `config.token_for_cross_domain_redirect` (defaults to `nil`). It is called with `(user, request, target_host)` and should return a token string or `nil`.
+When redirecting to another host, you can append an SSO token by setting `config.sso_token_for_cross_domain_redirects` (defaults to `nil`). It is called with `(user, request, target_host)` and should return a token string or `nil`.
 
 ### Multi-domain logout bounce
 

@@ -64,7 +64,7 @@ module Searls
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
       :redirect_path_after_settings_change, # string or proc(user, params, request, routes), post-settings updates redirect here
-      :token_for_cross_domain_redirect, # proc(user, request, target_host)
+      :sso_token_for_cross_domain_redirects, # proc(user, request, target_host)
       # Hook setup
       :validate_registration, # proc(user, params, errors = []), must return an array of error messages where empty means valid
       :after_login_success, # proc(user)
@@ -125,7 +125,7 @@ module Searls
         validate_email_verification_mode!
         validate_numeric_options!
         validate_core_hooks!
-        ensure_callable_optional!(:token_for_cross_domain_redirect)
+        ensure_callable_optional!(:sso_token_for_cross_domain_redirects)
         validate_password_settings!
         validate_default_user_hooks!
       rescue => e
