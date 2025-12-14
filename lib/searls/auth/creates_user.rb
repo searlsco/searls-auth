@@ -38,7 +38,7 @@ module Searls
       def simplified_error_messages(model)
         model.errors.details.keys.map { |attr|
           model.errors.full_messages_for(attr).first
-        }.join
+        }.compact
       end
     end
   end
