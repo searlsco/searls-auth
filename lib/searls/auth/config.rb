@@ -64,6 +64,7 @@ module Searls
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
       :redirect_path_after_settings_change, # string or proc(user, params, request, routes), post-settings updates redirect here
+      :redirect_url_after_logout, # string or proc(notice, params, request, routes)
       :sso_token_for_cross_domain_redirects, # proc(user, request, target_host)
       # Hook setup
       :validate_registration, # proc(user, params, errors = []), must return an array of error messages where empty means valid
@@ -71,6 +72,7 @@ module Searls
       # Branding setup
       :app_name, # string
       :app_url, # string
+      :support_email_address, # string
       :email_banner_image_path, # string
       :email_background_color, # string
       :email_button_color, # string
@@ -111,6 +113,14 @@ module Searls
 
       def password_reset_enabled?
         auth_methods.include?(:password) && password_reset_enabled
+      end
+
+      def default_redirect_path_after_login
+        redirect_path_after_login
+      end
+
+      def default_redirect_path_after_login=(value)
+        self.redirect_path_after_login = value
       end
 
       def password_present?(user)
