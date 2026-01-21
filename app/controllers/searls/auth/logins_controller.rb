@@ -4,6 +4,9 @@ module Searls
       before_action :reset_expired_email_otp
 
       def show
+        sanitizes_flash_html = SanitizesFlashHtml.new
+        flash.now[:notice] ||= sanitizes_flash_html.sanitize(params[:notice]) if params[:notice].present?
+        flash.now[:alert] ||= sanitizes_flash_html.sanitize(params[:alert]) if params[:alert].present?
         render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout
       end
 
@@ -16,9 +19,10 @@ module Searls
       end
 
       def destroy
-        ResetsSession.new.reset(self, except_for: [:has_logged_in_before])
+        ResetsSession.new.reset(self, except_for: Searls::Auth.config.preserve_session_keys_after_logout)
         flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_logout, params)
-        redirect_to searls_auth.login_path
+        target = Searls::Auth.config.resolve(:redirect_url_after_logout, flash[:notice], params, request, main_app)
+        redirect_to(target.presence || searls_auth.login_path, allow_other_host: true)
       end
 
       private

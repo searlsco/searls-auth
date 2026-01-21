@@ -43,7 +43,7 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
 
   def test_delivers_password_reset_email
     perform_enqueued_jobs do
-      Searls::Auth::DeliversPasswordReset.new.deliver(user: @user, redirect_path: "/members", redirect_subdomain: nil)
+      Searls::Auth::DeliversPasswordReset.new.deliver(user: @user, redirect_path: "/members", redirect_host: nil)
     end
 
     assert_equal 1, ActionMailer::Base.deliveries.size
@@ -58,7 +58,7 @@ class PasswordResetServicesTest < ActiveSupport::TestCase
     end
 
     perform_enqueued_jobs do
-      Searls::Auth::DeliversPasswordReset.new.deliver(user: @user, redirect_path: nil, redirect_subdomain: nil)
+      Searls::Auth::DeliversPasswordReset.new.deliver(user: @user, redirect_path: nil, redirect_host: nil)
     end
 
     mail = ActionMailer::Base.deliveries.last

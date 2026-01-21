@@ -39,7 +39,7 @@ module Searls
           session[:user_id] = result.user.id
           session[:has_logged_in_before] = true
           flash[:notice] = Searls::Auth.config.resolve(:flash_notice_after_login, result.user, params)
-          if (target = target_redirect_url)
+          if (target = target_redirect_url(user: result.user))
             redirect_with_host_awareness(target)
           else
             redirect_to Searls::Auth.config.resolve(:redirect_path_after_login, result.user, params, request, main_app)

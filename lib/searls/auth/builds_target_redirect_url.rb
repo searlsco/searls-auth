@@ -1,16 +1,22 @@
 require "uri"
+require "rack/utils"
 
 module Searls
   module Auth
     class BuildsTargetRedirectUrl
-      def build(request, params)
+      def build(request, params, user: nil)
         path = normalize_path(params[:redirect_path])
-        host = resolve_host(request, params[:redirect_subdomain])
+        host = normalize_redirect_host(params[:redirect_host])
 
-        if host == request.host && path.present?
+        if (host.blank? || host == request.host) && path.present?
           path
-        elsif host != request.host
-          absolute_url(request, host, path)
+        elsif host.present? && host != request.host
+          url = absolute_url(request, host, path)
+          if same_cookie_domain?(request, host)
+            url
+          else
+            append_cross_domain_sso_token(url, request, user, host) || path
+          end
         end
       end
 
@@ -23,32 +29,12 @@ module Searls
         end
       end
 
-      def resolve_host(request, subdomain)
-        s = normalize_subdomain(subdomain)
-        cur = request.subdomain.presence
-        return request.host if s.nil? || s == cur || (s == "" && cur.nil?)
-        return root_host(request) || request.host if s == "" && cur
-        base = root_host(request) || request.host
-        "#{s}.#{base}"
-      end
+      def normalize_redirect_host(raw)
+        v = raw.to_s.strip.downcase
+        return if v.blank?
 
-      def normalize_subdomain(raw)
-        return "" if raw.is_a?(String) && raw.strip.empty?
-        if (v = raw.to_s.downcase).present?
-          v if /\A[a-z0-9-]+\z/.match?(v)
-        end
-      end
-
-      def root_host(request)
-        request.domain.presence || begin
-          host = URI.parse(request.base_url).host
-          sub = request.subdomain.to_s
-          if sub.empty?
-            host
-          else
-            pref = "#{sub}."
-            host.start_with?(pref) ? host.delete_prefix(pref) : host
-          end
+        if /\A[a-z0-9.-]+\z/.match?(v)
+          v
         end
       end
 
@@ -66,6 +52,29 @@ module Searls
           uri.fragment = nil
         end
         uri.to_s
+      end
+
+      def append_cross_domain_sso_token(url, request, user, host)
+        return if user.blank?
+
+        token = begin
+          provider = Searls::Auth.config.sso_token_for_cross_domain_redirects
+          provider&.call(user, request, host)
+        end
+        return if token.blank?
+
+        uri = URI.parse(url)
+        query = Rack::Utils.parse_nested_query(uri.query)
+        query["sso_token"] = token
+        uri.query = Rack::Utils.build_nested_query(query)
+        uri.to_s
+      end
+
+      def same_cookie_domain?(request, host)
+        domain = request.domain
+        return false if domain.blank?
+
+        host == domain || host.end_with?(".#{domain}")
       end
     end
   end

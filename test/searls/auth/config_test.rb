@@ -208,6 +208,14 @@ class Searls::Auth::ConfigTest < TLDR
     assert_includes err.message, "max_allowed_email_otp_attempts"
   end
 
+  def test_default_redirect_path_after_login_is_alias
+    assert_valid! do |c|
+      c.auth_methods = [:email_link]
+      c.default_redirect_path_after_login = "/hello"
+    end
+    assert_equal "/hello", Searls::Auth.config.redirect_path_after_login
+  end
+
   private
 
   def assert_invalid!

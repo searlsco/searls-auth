@@ -29,19 +29,19 @@ class ResendVerificationSecurityTest < ApplicationSystemTestCase
 
   def test_resend_uses_pending_session_email_not_param
     # Create a pending verification session by registering a different address
-    visit searls_auth.register_path(redirect_path: "/after", redirect_subdomain: "app")
+    visit searls_auth.register_path(redirect_path: "/after", redirect_host: "app.example.com")
     fill_in :email, with: "owner@example.com"
     fill_in :password, with: "sekrit"
     fill_in :password_confirmation, with: "sekrit"
     click_button "Register"
-    assert_current_path searls_auth.pending_email_verification_path(email: "owner@example.com", redirect_path: "/after", redirect_subdomain: "app")
+    assert_current_path searls_auth.pending_email_verification_path(email: "owner@example.com", redirect_path: "/after", redirect_host: "app.example.com")
     assert_equal 1, ActionMailer::Base.deliveries.size
 
     # Now try to force resend to someone else via param
     visit searls_auth.resend_email_verification_path(email: @user.email)
     assert_text "Verification email sent"
     # Without a referrer, controller falls back to the pending view with same redirect params
-    assert_current_path searls_auth.pending_email_verification_path(email: "owner@example.com", redirect_path: "/after", redirect_subdomain: "app")
+    assert_current_path searls_auth.pending_email_verification_path(email: "owner@example.com", redirect_path: "/after", redirect_host: "app.example.com")
 
     sent_to = ActionMailer::Base.deliveries.last.to
     assert_equal ["owner@example.com"], sent_to

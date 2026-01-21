@@ -7,32 +7,33 @@ class Searls::Auth::BuildsTargetRedirectUrlTest < TLDR
 
   def test_a_bunch_of_urls
     assert_nil @subject.build(req, params)
-    assert_equal "https://foo.posseparty.com", @subject.build(req, params(nil, "foo"))
     assert_equal "/dash", @subject.build(req, params("dash"))
     assert_equal "/dash", @subject.build(req, params("/dash"))
     assert_equal "/phish", @subject.build(req, params("https://evil.test/phish"))
-    assert_nil @subject.build(req, params(nil, "app"))
-    assert_equal "https://posseparty.com", @subject.build(req, params(nil, ""))
-    assert_nil @subject.build(req, params(nil, "evil.com"))
-    assert_equal "https://foo.posseparty.com/secret?x=1#y", @subject.build(req, params("/secret?x=1#y", "foo"))
     assert_equal "/secret?x=1#y", @subject.build(req, params("/secret?x=1#y"))
     assert_equal "/host/path", @subject.build(req, params("//host/path"))
     assert_equal "/?a=1#f", @subject.build(req, params("https://x.test?a=1#f"))
-    assert_equal "https://foo.posseparty.com", @subject.build(req, params("", "foo"))
     assert_equal "/?a=1", @subject.build(req, params("?a=1"))
     assert_equal "/#f", @subject.build(req, params("#f"))
     assert_equal "/mailto:user@example.com", @subject.build(req, params("mailto:user@example.com"))
     assert_equal "/abc", @subject.build(req, params("///abc"))
     assert_equal "/dash", @subject.build(req, params("  dash  "))
-    assert_equal "https://foo.posseparty.com", @subject.build(req, params(nil, "Foo"))
     assert_nil @subject.build(req, params(nil, " Foo "))
-    assert_equal "https://posseparty.com", @subject.build(req, params(nil, "   "))
-    assert_equal "/args", @subject.build(req, params("/args", "app"))
+    assert_nil @subject.build(req, params(nil, "   "))
     assert_equal "/args", @subject.build(req, params("/args", "foo_bar"))
     assert_nil @subject.build(req, params(nil, "foo_bar"))
-    assert_nil @subject.build(req_root, params(nil, ""))
-    assert_equal "https://foo.posseparty.com", @subject.build(req_domain_nil, params(nil, "foo"))
-    assert_equal "https://foo.localhost/p", @subject.build(req_localhost, params("/p", "foo"))
+
+    assert_equal "https://foo.posseparty.com", @subject.build(req, params(nil, "foo.posseparty.com"))
+    assert_nil @subject.build(req, params(nil, "app.posseparty.com"))
+    assert_equal "https://posseparty.com", @subject.build(req, params(nil, "posseparty.com"))
+    assert_equal "https://foo.posseparty.com/secret?x=1#y", @subject.build(req, params("/secret?x=1#y", "foo.posseparty.com"))
+
+    assert_nil @subject.build(req, params(nil, "evil.com"))
+    assert_equal "/after", @subject.build(req, params("/after", "evil.com"))
+
+    with_cross_domain_token do
+      assert_equal "https://evil.com/after?sso_token=token-123", @subject.build(req, params("/after", "evil.com"), user: Object.new)
+    end
   end
 
   private
@@ -69,7 +70,19 @@ class Searls::Auth::BuildsTargetRedirectUrlTest < TLDR
   def params(path = nil, subdomain = nil)
     {
       redirect_path: path,
-      redirect_subdomain: subdomain
+      redirect_host: subdomain
     }.compact
+  end
+
+  def with_cross_domain_token
+    previous = Searls::Auth.config.sso_token_for_cross_domain_redirects
+    Searls::Auth.configure do |config|
+      config.sso_token_for_cross_domain_redirects = ->(_user, _request, _target_host) { "token-123" }
+    end
+    yield
+  ensure
+    Searls::Auth.configure do |config|
+      config.sso_token_for_cross_domain_redirects = previous
+    end
   end
 end

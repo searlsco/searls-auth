@@ -3,6 +3,7 @@ require_relative "auth/parses_time_safely"
 require_relative "auth/config"
 require_relative "auth/builds_target_redirect_url" if defined?(Rails)
 require_relative "auth/creates_user" if defined?(Rails)
+require_relative "auth/sanitizes_flash_html" if defined?(Rails)
 require_relative "auth/emails_link"
 require_relative "auth/emails_verification"
 require_relative "auth/engine" if defined?(Rails)
@@ -22,9 +23,11 @@ module Searls
       email_verification_mode: :none,
       # Data setup
       user_finder_by_email: ->(email) { User.find_by(email:) },
+      user_finder_by_email_for_registration: ->(email) { User.find_by(email:) },
       user_finder_by_id: ->(id) { User.find_by(id:) },
       user_finder_by_token: ->(token) { User.find_by_token_for(:email_auth, token) },
       user_initializer: ->(params) { User.new(email: params[:email]) },
+      existing_user_registration_blocked_predicate: ->(_user, _params) { true },
       user_name_method: "name",
       token_generator: ->(user) { user.generate_token_for(:email_auth) },
       email_otp_expiry_minutes: 30,
@@ -67,6 +70,7 @@ module Searls
       redirect_path_after_settings_change: ->(user, params, request, routes) {
         routes.respond_to?(:edit_settings_path) ? routes.edit_settings_path : "/settings"
       },
+      sso_token_for_cross_domain_redirects: nil,
       # Hook setup
       validate_registration: ->(user, params, errors) { errors },
       after_login_success: ->(user) {},

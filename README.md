@@ -84,6 +84,15 @@ end
 ```
 As stated in the comment above, you can find each configuration and its default value in the code.
 
+### Customize user lookup
+
+searls-auth uses separate hooks to find users by email for login vs registration:
+
+- `config.user_finder_by_email` is used by login.
+- `config.user_finder_by_email_for_registration` is used by registration to find an existing row to update (e.g., “upgrade” an existing user record).
+
+If `user_finder_by_email_for_registration` returns a persisted user, searls-auth will block the registration attempt unless `config.existing_user_registration_blocked_predicate.call(user, params)` returns `false`.
+
 ### Choose your login methods
 
 By default, users can log in either by clicking a magic link or by entering a 6‑digit code they receive via email. This is controlled by the `auth_methods` configuration:
@@ -264,7 +273,19 @@ end
 | `[:password, :email_link, :email_otp]` | `:optional` | Users can log in with either password or email. Registration logs the user in immediately and also emails a verification link. |
 | `[:password, :email_link]` | `:required` | Registration emails a link and blocks password login until verified. Resend verification is exposed at `searls_auth.resend_email_verification_path`. |
 
-In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain (cross-subdomain redirects still work via `redirect_subdomain`).
+In every case, `redirect_path` values are normalized to on-site URLs, so forwarding someone to login with `redirect_path: some_path` keeps the eventual redirect on your domain.
+
+You can optionally pass `redirect_host` to redirect to another host (e.g., an admin subdomain or another app).
+
+When redirecting to another host, you can append an SSO token by setting `config.sso_token_for_cross_domain_redirects` (defaults to `nil`). It is called with `(user, request, target_host)` and should return a token string or `nil`.
+
+### Multi-domain logout bounce
+
+The engine provides `searls_auth.logout_path`, which clears the current session on the current host.
+
+If your app uses multiple cookie domains, the engine cannot clear the other domain’s session cookie. The simplest approach is to implement logout in your host app and “bounce” through the other domain(s), clearing each cookie in turn.
+
+If you mount the engine at `/`, you can shadow its `/logout` route by defining your own `get "/logout"` route before the `mount` line. Your controller can call `Searls::Auth::ResetsSession.new.reset(self, except_for: [...])` and then redirect to your other domain’s logout endpoint with a `return_to` back to your primary domain.
 
 ## Use it
 

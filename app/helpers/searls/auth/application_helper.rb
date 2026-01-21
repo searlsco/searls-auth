@@ -55,7 +55,7 @@ module Searls
       end
 
       def enable_turbo?
-        params[:redirect_subdomain].blank? || params[:redirect_subdomain] == request.subdomain
+        !redirect_host_crosses_host?
       end
 
       def attr_for(model, field_name)
@@ -77,6 +77,16 @@ module Searls
 
       def params
         @view_context.params
+      end
+
+      def request
+        @view_context.request
+      end
+
+      def redirect_host_crosses_host?
+        host = params[:redirect_host].to_s.strip.downcase
+        return false if host.blank?
+        host != request.host
       end
     end
 

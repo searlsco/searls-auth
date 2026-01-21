@@ -9,9 +9,11 @@ module Searls
     # Core hooks that must always be callable
     HOOK_FIELDS = [
       :user_finder_by_email,
+      :user_finder_by_email_for_registration,
       :user_finder_by_id,
       :user_finder_by_token,
       :user_initializer,
+      :existing_user_registration_blocked_predicate,
       :token_generator,
       :email_verified_predicate,
       :email_verified_setter,
@@ -23,9 +25,11 @@ module Searls
       :email_verification_mode, # :none, :optional, :required
       # Data setup
       :user_finder_by_email, # proc(email)
+      :user_finder_by_email_for_registration, # proc(email)
       :user_finder_by_id, # proc(id)
       :user_finder_by_token, # proc(token)
       :user_initializer, # proc(params)
+      :existing_user_registration_blocked_predicate, # proc(user, params)
       :user_name_method, # string
       :token_generator, # proc()
       :password_verifier, # proc(user, password)
@@ -60,12 +64,15 @@ module Searls
       :redirect_path_after_register, # string or proc(user, params, request, routes), all new registrations redirect here
       :redirect_path_after_login, # string or proc(user, params, request, routes), only redirected here if redirect_path param not set
       :redirect_path_after_settings_change, # string or proc(user, params, request, routes), post-settings updates redirect here
+      :redirect_url_after_logout, # string or proc(notice, params, request, routes)
+      :sso_token_for_cross_domain_redirects, # proc(user, request, target_host)
       # Hook setup
       :validate_registration, # proc(user, params, errors = []), must return an array of error messages where empty means valid
       :after_login_success, # proc(user)
       # Branding setup
       :app_name, # string
       :app_url, # string
+      :support_email_address, # string
       :email_banner_image_path, # string
       :email_background_color, # string
       :email_button_color, # string
@@ -108,6 +115,14 @@ module Searls
         auth_methods.include?(:password) && password_reset_enabled
       end
 
+      def default_redirect_path_after_login
+        redirect_path_after_login
+      end
+
+      def default_redirect_path_after_login=(value)
+        self.redirect_path_after_login = value
+      end
+
       def password_present?(user)
         predicate = password_present_predicate
         return false if predicate.nil?
@@ -120,6 +135,7 @@ module Searls
         validate_email_verification_mode!
         validate_numeric_options!
         validate_core_hooks!
+        ensure_callable_optional!(:sso_token_for_cross_domain_redirects)
         validate_password_settings!
         validate_default_user_hooks!
       rescue => e
@@ -224,6 +240,7 @@ module Searls
       def validate_default_user_hooks!
         hooks_pointing_at_user = [
           :user_finder_by_email,
+          :user_finder_by_email_for_registration,
           :user_finder_by_id,
           :user_finder_by_token,
           :user_initializer,
@@ -260,6 +277,17 @@ module Searls
           has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
           unless schema_checks_blocked? || has_email_method || has_email_column
             raise Searls::Auth::Error, "Default :user_finder_by_email expects a `users.email` attribute."
+          end
+        end
+
+        if public_send(:user_finder_by_email_for_registration).equal?(Searls::Auth::DEFAULT_CONFIG[:user_finder_by_email_for_registration])
+          unless ::User.respond_to?(:find_by)
+            raise Searls::Auth::Error, "Default :user_finder_by_email_for_registration expects User.find_by(email: ...) to exist."
+          end
+          has_email_method = ::User.method_defined?(:email)
+          has_email_column = ::User.respond_to?(:column_names) && ::User.column_names.include?("email")
+          unless schema_checks_blocked? || has_email_method || has_email_column
+            raise Searls::Auth::Error, "Default :user_finder_by_email_for_registration expects a `users.email` attribute."
           end
         end
 

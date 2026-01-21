@@ -2,7 +2,7 @@
 
 <%= form_with scope: :settings, url: searls_auth.settings_path, method: :patch do |f| %>
   <%= hidden_field_tag :redirect_path, params[:redirect_path] %>
-  <%= hidden_field_tag :redirect_subdomain, params[:redirect_subdomain] %>
+  <%= hidden_field_tag :redirect_host, params[:redirect_host] %>
 
   <fieldset>
     <legend>Password</legend>

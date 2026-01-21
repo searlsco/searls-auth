@@ -1,6 +1,6 @@
 Hello<% if (user_name = searls_auth_helper.attr_for(@user, @config.user_name_method)).present? %>, <%= user_name %><% end %>!
 
 Verify your email using this link:
-<%= searls_auth.verify_email_url({ token: @token, redirect_path: @redirect_path, redirect_subdomain: @redirect_subdomain }.compact_blank) %>
+<%= searls_auth.verify_email_url({ token: @token, redirect_path: @redirect_path, redirect_host: @redirect_host }.compact_blank) %>
 
 If you didn't ask for this, you can ignore this email.

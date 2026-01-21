@@ -18,19 +18,19 @@ class PasswordRequiredPasswordOnlyPendingViewTest < ApplicationSystemTestCase
   end
 
   def test_registration_shows_pending_and_can_resend
-    visit searls_auth.register_path(redirect_path: "/after", redirect_subdomain: "app")
+    visit searls_auth.register_path(redirect_path: "/after", redirect_host: "app.example.com")
     fill_in :email, with: "required-only-pass@example.com"
     fill_in :password, with: "sekrit"
     fill_in :password_confirmation, with: "sekrit"
     click_button "Register"
 
     assert_text "Check your email!"
-    assert_current_path searls_auth.pending_email_verification_path(email: "required-only-pass@example.com", redirect_path: "/after", redirect_subdomain: "app")
+    assert_current_path searls_auth.pending_email_verification_path(email: "required-only-pass@example.com", redirect_path: "/after", redirect_host: "app.example.com")
     assert_equal 1, ActionMailer::Base.deliveries.size
     assert_equal "Verify your email", ActionMailer::Base.deliveries.first.subject
 
     click_link "Resend verification email"
     assert_text "Verification email sent"
-    assert_current_path searls_auth.pending_email_verification_path(email: "required-only-pass@example.com", redirect_path: "/after", redirect_subdomain: "app")
+    assert_current_path searls_auth.pending_email_verification_path(email: "required-only-pass@example.com", redirect_path: "/after", redirect_host: "app.example.com")
   end
 end
