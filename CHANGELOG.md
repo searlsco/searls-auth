@@ -2,6 +2,8 @@
 
 * **BREAKING:** Remove `redirect_subdomain` support in favor of `redirect_host`
 * **BREAKING:** Replace `redirect_host_allowed_predicate`, `cross_domain_sso_token_generator`, and `cross_cookie_domain_predicate` with `sso_token_for_cross_domain_redirects`
+* Security: Sanitize user-controlled `notice` and `alert` query params rendered on the login page to mitigate reflected XSS, while preserving safe formatting tags and links (`<a href=...>` and Turbo data attributes)
+* Behavior: Disallowed tags/attributes/protocols are stripped from login `notice`/`alert` params (e.g. `<script>`, event handler attributes, `javascript:` links)
 
 ## [1.0.2] - 2025-10-13
 

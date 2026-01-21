@@ -4,8 +4,9 @@ module Searls
       before_action :reset_expired_email_otp
 
       def show
-        flash.now[:notice] ||= params[:notice] if params[:notice].present?
-        flash.now[:alert] ||= params[:alert] if params[:alert].present?
+        sanitizes_flash_html = SanitizesFlashHtml.new
+        flash.now[:notice] ||= sanitizes_flash_html.sanitize(params[:notice]) if params[:notice].present?
+        flash.now[:alert] ||= sanitizes_flash_html.sanitize(params[:alert]) if params[:alert].present?
         render Searls::Auth.config.login_view, layout: Searls::Auth.config.layout
       end
 

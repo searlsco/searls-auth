@@ -3,6 +3,7 @@ require_relative "auth/parses_time_safely"
 require_relative "auth/config"
 require_relative "auth/builds_target_redirect_url" if defined?(Rails)
 require_relative "auth/creates_user" if defined?(Rails)
+require_relative "auth/sanitizes_flash_html" if defined?(Rails)
 require_relative "auth/emails_link"
 require_relative "auth/emails_verification"
 require_relative "auth/engine" if defined?(Rails)
